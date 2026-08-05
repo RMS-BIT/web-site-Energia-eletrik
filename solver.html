@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Solver Manutenção Industrial | Manutenção Preditiva em Campo Grande, MS</title>
+<meta name="description" content="Análise de vibração, termografia, alinhamento a laser e mais. Diagnóstico técnico com recomendação de ação para indústrias de Mato Grosso do Sul.">
+<meta name="theme-color" content="#07090B">
+<meta name="color-scheme" content="dark">
+<style>
+/* ==========================================================================
+   1. TOKENS
+   ========================================================================== */
+:root{
+  /* base */
+  --void:#000000;  --surface-900:#07090B; --surface-800:#0E1216;
+  --surface-700:#161B21; --surface-600:#232A32;
+
+  /* aço */
+  --steel-100:#F2F5F7; --steel-300:#C4CCD4;
+  --steel-500:#8A949E; --steel-700:#4A535C;
+  --hairline:rgba(196,204,212,.14);
+
+  /* ação */
+  --blue-core:#1E2CB0; --blue-signal:#2F55F5;
+  --blue-glow:#6C8CFF; --blue-veil:rgba(47,85,245,.12);
+
+  /* severidade */
+  --cond-normal:#2F55F5; --cond-atencao:#F2A93B;
+  --cond-alerta:#F97316;  --cond-critico:#E0492B;
+  --cond-inativo:#4A535C;
+
+  /* tipografia */
+  --font-display:'Archivo','Saira','Chivo',system-ui,sans-serif;
+  --font-body:'Inter','Instrument Sans','Public Sans',system-ui,sans-serif;
+  --font-data:'JetBrains Mono','IBM Plex Mono','Roboto Mono',ui-monospace,monospace;
+
+  /* forma */
+  --r-sm:4px; --r-md:6px; --r-lg:8px; --r-pill:999px;
+
+  /* espaço */
+  --s-1:4px;  --s-2:8px;  --s-3:12px; --s-4:16px; --s-5:24px;
+  --s-6:32px; --s-7:48px; --s-8:64px; --s-9:96px; --s-10:128px;
+
+  /* elevação */
+  --elev-0:none;
+  --elev-1:inset 0 1px 0 rgba(255,255,255,.05);
+  --elev-2:inset 0 1px 0 rgba(255,255,255,.08), 0 1px 0 rgba(0,0,0,.6);
+  --elev-focus:0 0 0 3px rgba(47,85,245,.12);
+
+  /* movimento */
+  --ease:cubic-bezier(.2,.8,.2,1);
+  --dur:180ms;
+
+  /* escala tipográfica — mobile-first (< 768px) */
+  --t-h1:40px;   --t-h2:30px;  --t-h3:22px;  --t-h4:18px;
+  --t-lead:17px; --t-body:16px; --t-small:14px;
+  --t-eyebrow:12px; --t-data:32px; --t-unit:15px;
+
+  /* layout — mobile-first */
+  --sec-pad:72px;
+  --page-pad:20px;
+  --gap:16px;
+  --card-pad:24px;
+  --gap-cards:16px;
+  --t-sub:16px;   /* título → subtítulo */
+  --sub-cta:32px; /* subtítulo → CTA */
+  --header-h:64px;
+}
+@media (min-width:768px){
+  :root{
+    --t-h1:56px; --t-h2:38px; --t-h3:26px; --t-h4:20px;
+    --t-lead:18px; --t-data:38px;
+    --sec-pad:96px; --page-pad:32px; --gap:24px;
+    --card-pad:32px; --gap-cards:24px;
+    --t-sub:20px; --sub-cta:40px; --header-h:72px;
+  }
+}
+@media (min-width:1200px){
+  :root{
+    --t-h1:76px; --t-h2:48px; --t-h3:30px; --t-h4:21px;
+    --t-lead:19px; --t-data:44px;
+    --sec-pad:128px; --page-pad:64px;
+  }
+}
+
+/* ==========================================================================
+   2. RESET / BASE
+   ========================================================================== */
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{
+  margin:0;
+  background:var(--surface-900);
+  color:var(--steel-300);
+  font-family:var(--font-body);
+  font-size:var(--t-body);
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+img,svg{max-width:100%;display:block}
+ul,ol{margin:0;padding:0;list-style:none}
+p{margin:0}
+a{color:inherit}
+button,input,textarea{font:inherit;color:inherit}
+
+:focus-visible{
+  outline:2px solid var(--blue-glow);
+  outline-offset:2px;
+  border-radius:var(--r-sm);
+}
+
+.skip-link{
+  position:absolute;left:var(--s-4);top:-100px;z-index:100;
+  background:var(--blue-core);color:#fff;border:1px solid var(--blue-signal);
+  border-radius:var(--r-sm);padding:0 var(--s-5);height:48px;
+  display:inline-flex;align-items:center;font-weight:600;
+  transition:top var(--dur) var(--ease);
+}
+.skip-link:focus{top:var(--s-3)}
+
+.sr-only{
+  position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+  overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;
+}
+
+/* ==========================================================================
+   3. TIPOGRAFIA
+   ========================================================================== */
+h1,h2,h3,h4{
+  font-family:var(--font-display);
+  color:var(--steel-100);
+  margin:0;
+  text-wrap:balance;
+}
+h1{font-size:var(--t-h1);font-weight:700;line-height:1.02;letter-spacing:-.03em;font-stretch:87.5%}
+h2{font-size:var(--t-h2);font-weight:700;line-height:1.08;letter-spacing:-.02em}
+h3{font-size:var(--t-h3);font-weight:600;line-height:1.15;letter-spacing:-.01em}
+h4{font-size:var(--t-h4);font-weight:600;line-height:1.25}
+
+.eyebrow{
+  font-family:var(--font-data);
+  font-size:var(--t-eyebrow);
+  font-weight:600;
+  line-height:1.2;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+  color:var(--steel-500);
+  display:flex;
+  align-items:flex-start;
+  gap:var(--s-3);
+  margin:0 0 var(--s-4);
+}
+.eyebrow::before{
+  content:"";
+  width:24px;height:1px;flex:none;
+  margin-top:.55em;
+  background:var(--cond-normal);
+}
+
+.lead{font-size:var(--t-lead);line-height:1.6;color:var(--steel-300);max-width:68ch}
+.body{max-width:68ch}
+.small{font-size:var(--t-small);line-height:1.55;color:var(--steel-500)}
+strong{color:var(--steel-100);font-weight:600}
+
+/* ==========================================================================
+   4. LAYOUT
+   ========================================================================== */
+.container{
+  width:100%;
+  max-width:calc(1240px + (var(--page-pad) * 2));
+  margin-inline:auto;
+  padding-inline:var(--page-pad);
+}
+.section{padding-block:var(--sec-pad);position:relative}
+.section--alt{background:var(--surface-800)}
+.section--void{background:var(--void)}
+.section-head{max-width:68ch;margin-bottom:var(--s-7)}
+.section-head h2 + .lead{margin-top:var(--t-sub)}
+:where(section)[id]{scroll-margin-top:calc(var(--header-h) + var(--s-4))}
+
+/* malha técnica de fundo (hero + tecnologias) */
+.mesh > .container{position:relative;z-index:1}
+.mesh::before{
+  content:"";
+  position:absolute;inset:0;
+  pointer-events:none;
+  background-image:
+    linear-gradient(to right,rgba(196,204,212,.05) 1px,transparent 1px),
+    linear-gradient(to bottom,rgba(196,204,212,.05) 1px,transparent 1px);
+  background-size:64px 64px;
+  -webkit-mask-image:radial-gradient(ellipse 80% 70% at 50% 40%,#000 30%,transparent 100%);
+  mask-image:radial-gradient(ellipse 80% 70% at 50% 40%,#000 30%,transparent 100%);
+}
+
+/* ==========================================================================
+   5. BOTÕES
+   ========================================================================== */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:48px;padding:0 28px;
+  border-radius:var(--r-sm);
+  font-family:var(--font-body);font-weight:600;font-size:var(--t-body);
+  letter-spacing:.01em;
+  text-decoration:none;cursor:pointer;
+  transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),transform var(--dur) var(--ease);
+}
+.btn--primary{
+  background:var(--blue-core);color:#FFFFFF;
+  border:1px solid var(--blue-signal);
+}
+.btn--primary:hover{background:var(--blue-signal);border-color:var(--blue-glow);transform:translateY(-1px)}
+.btn--primary:active{background:var(--blue-core);transform:translateY(0);transition:none}
+.btn--secondary{
+  background:transparent;color:var(--steel-100);
+  border:1px solid var(--hairline);
+}
+.btn--secondary:hover{border-color:var(--steel-500);background:rgba(255,255,255,.04)}
+.btn--compact{min-height:40px;padding:0 20px}
+.btn[disabled]{background:var(--surface-600);color:var(--steel-700);border-color:var(--surface-600);cursor:not-allowed;transform:none}
+
+.link{
+  color:var(--blue-glow);
+  text-decoration:underline;
+  text-decoration-thickness:1px;
+  text-underline-offset:4px;
+  transition:text-decoration-thickness var(--dur) var(--ease);
+}
+.link:hover{text-decoration-thickness:2px}
+
+/* ==========================================================================
+   6. HEADER / NAVEGAÇÃO
+   ========================================================================== */
+.site-header{
+  position:sticky;top:0;z-index:50;
+  background:rgba(7,9,11,.88);
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--hairline);
+}
+.site-header .container{
+  min-height:var(--header-h);
+  display:flex;align-items:center;justify-content:space-between;gap:var(--s-5);
+}
+.brand{
+  font-family:var(--font-display);
+  font-weight:700;font-size:20px;letter-spacing:.14em;
+  color:var(--steel-100);text-decoration:none;
+  display:inline-flex;align-items:center;gap:var(--s-3);
+  min-height:44px;
+}
+.brand::before{
+  content:"";width:10px;height:10px;flex:none;
+  border:1.5px solid var(--cond-normal);border-radius:var(--r-pill);
+}
+.nav-desktop{display:none}
+.nav-desktop ul{display:flex;align-items:center;gap:var(--s-5)}
+.nav-desktop a{
+  display:inline-flex;align-items:center;min-height:44px;
+  font-size:var(--t-small);color:var(--steel-500);text-decoration:none;
+  transition:color var(--dur) var(--ease);
+}
+.nav-desktop a:hover{color:var(--steel-100)}
+.header-cta{display:none}
+
+.nav-toggle{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:44px;height:44px;
+  background:transparent;border:1px solid var(--hairline);border-radius:var(--r-sm);
+  cursor:pointer;transition:border-color var(--dur) var(--ease),background var(--dur) var(--ease);
+}
+.nav-toggle:hover{border-color:var(--steel-500);background:rgba(255,255,255,.04)}
+.nav-toggle .bars{display:block;width:18px}
+.nav-toggle .bars span{
+  display:block;height:1.5px;background:var(--steel-100);border-radius:0;
+  transition:transform var(--dur) var(--ease),opacity var(--dur) var(--ease);
+}
+.nav-toggle .bars span + span{margin-top:4px}
+.nav-toggle[aria-expanded="true"] .bars span:nth-child(1){transform:translateY(5.5px) rotate(45deg)}
+.nav-toggle[aria-expanded="true"] .bars span:nth-child(2){opacity:0}
+.nav-toggle[aria-expanded="true"] .bars span:nth-child(3){transform:translateY(-5.5px) rotate(-45deg)}
+
+.nav-mobile{
+  display:none;
+  border-top:1px solid var(--hairline);
+  background:var(--surface-900);
+  padding-block:var(--s-3) var(--s-5);
+}
+.nav-mobile.is-open{display:block}
+.nav-mobile a{
+  display:flex;align-items:center;min-height:48px;
+  color:var(--steel-300);text-decoration:none;
+  border-bottom:1px solid var(--hairline);
+  transition:color var(--dur) var(--ease);
+}
+.nav-mobile a:hover{color:var(--steel-100)}
+.nav-mobile .btn{width:100%;margin-top:var(--s-5)}
+
+@media (min-width:1024px){
+  .nav-desktop{display:block}
+  .header-cta{display:inline-flex}
+  .nav-toggle{display:none}
+  .nav-mobile{display:none !important}
+}
+
+/* ==========================================================================
+   7. HERO
+   ========================================================================== */
+.hero{
+  background:var(--void);
+  position:relative;
+  padding-block:var(--sec-pad);
+  border-bottom:1px solid var(--hairline);
+  overflow:hidden;
+}
+.hero .container{position:relative;z-index:1}
+.hero-grid{display:grid;gap:var(--s-7);align-items:center}
+.hero h1{margin-bottom:var(--t-sub);max-width:16ch}
+.hero .lead{margin-bottom:var(--sub-cta)}
+.hero-actions{display:flex;flex-wrap:wrap;gap:var(--s-4)}
+.hero-actions .btn{flex:1 1 auto;min-width:200px}
+
+.seals{
+  display:grid;grid-template-columns:repeat(2,1fr);
+  gap:var(--s-3);
+  margin-top:var(--s-7);
+  padding-top:var(--s-6);
+  border-top:1px solid var(--hairline);
+}
+.seal{
+  display:flex;align-items:center;gap:var(--s-2);
+  font-family:var(--font-data);font-size:var(--t-eyebrow);
+  letter-spacing:.16em;text-transform:uppercase;color:var(--steel-500);
+  line-height:1.2;
+}
+.seal::before{content:"";width:6px;height:6px;flex:none;background:var(--cond-normal)}
+
+.hero-figure{position:relative}
+.hero-figure svg{width:100%;height:auto}
+
+@media (min-width:1024px){
+  .hero-grid{grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:var(--s-8)}
+  .seals{grid-template-columns:repeat(4,1fr);gap:var(--s-5)}
+  .hero-actions .btn{flex:0 0 auto}
+}
+
+/* ==========================================================================
+   8. BARRA DE CREDIBILIDADE
+   ========================================================================== */
+.metrics{
+  display:grid;grid-template-columns:repeat(2,1fr);
+  gap:var(--gap);
+}
+.metric{padding-left:var(--s-4);border-left:1px solid var(--hairline)}
+.metric .value{
+  font-family:var(--font-data);font-size:var(--t-data);font-weight:500;
+  line-height:1;letter-spacing:-.01em;color:var(--steel-100);
+  display:flex;align-items:baseline;gap:2px;
+}
+.metric .unit{
+  font-family:var(--font-data);font-size:var(--t-unit);font-weight:400;
+  line-height:1;letter-spacing:.04em;color:var(--blue-glow);
+  text-transform:lowercase;
+}
+.metric .label{
+  font-family:var(--font-data);font-size:var(--t-eyebrow);font-weight:600;
+  line-height:1.2;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--steel-500);margin-top:var(--s-3);
+}
+@media (min-width:768px){
+  .metrics{grid-template-columns:repeat(4,1fr)}
+}
+
+/* ==========================================================================
+   9. SOBRE
+   ========================================================================== */
+.about-grid{display:grid;gap:var(--s-7)}
+.about-text p + p{margin-top:var(--s-5)}
+.diffs{display:grid;gap:var(--gap-cards)}
+.diff{
+  background:var(--surface-800);border:1px solid var(--hairline);
+  border-radius:var(--r-md);padding:var(--card-pad);
+  box-shadow:var(--elev-1);
+  border-top:2px solid var(--cond-normal);
+  transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease);
+}
+.diff:hover{background:var(--surface-700);border-color:rgba(47,85,245,.35);box-shadow:var(--elev-2)}
+.diff p{font-size:var(--t-small);line-height:1.55;color:var(--steel-500)}
+.diff strong{display:block;margin-bottom:var(--s-2);font-size:var(--t-h4);font-family:var(--font-display)}
+@media (min-width:768px){
+  .diffs{grid-template-columns:repeat(2,1fr)}
+}
+@media (min-width:1024px){
+  .about-grid{grid-template-columns:minmax(0,6fr) minmax(0,6fr);gap:var(--s-8);align-items:start}
+}
+
+/* ==========================================================================
+   10. SERVIÇOS
+   ========================================================================== */
+.cards{display:grid;gap:var(--gap-cards)}
+.cards > li,.steps > li,.metrics > li,.diffs > li,.formats > li{min-width:0}
+.card{
+  position:relative;
+  background:var(--surface-800);
+  border:1px solid var(--hairline);
+  border-radius:var(--r-md);
+  padding:var(--card-pad);
+  box-shadow:var(--elev-1);
+  transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease);
+  display:flex;flex-direction:column;gap:var(--s-3);
+}
+.card::before{
+  content:"";position:absolute;top:0;left:0;right:0;height:2px;
+  background:var(--sev,var(--cond-normal));
+  border-top-left-radius:var(--r-md);border-top-right-radius:var(--r-md);
+}
+.card:hover{background:var(--surface-700);border-color:rgba(47,85,245,.35);box-shadow:var(--elev-2)}
+.card .icon{
+  width:28px;height:28px;color:var(--steel-500);
+  transition:color var(--dur) var(--ease);
+}
+.card:hover .icon{color:var(--blue-signal)}
+.card p{font-size:var(--t-small);line-height:1.55;color:var(--steel-500);margin:0}
+/* card de técnica preditiva: título no papel de H4 */
+.card .h4-like{font-size:var(--t-h4);font-weight:600;line-height:1.25;letter-spacing:0}
+.tags{display:flex;flex-wrap:wrap;gap:var(--s-2);margin-top:auto;padding-top:var(--s-4)}
+.tag{
+  display:inline-flex;align-items:center;height:26px;padding:0 12px;
+  border:1px solid var(--hairline);border-radius:var(--r-pill);
+  font-family:var(--font-data);font-size:12px;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--steel-500);line-height:1;
+}
+.services-cta{margin-top:var(--s-7)}
+@media (min-width:768px){
+  .cards--3{grid-template-columns:repeat(3,1fr)}
+  .cards--4{grid-template-columns:repeat(2,1fr)}
+}
+@media (min-width:1024px){
+  .cards--4{grid-template-columns:repeat(4,1fr)}
+}
+
+/* ==========================================================================
+   11. PROCESSO
+   ========================================================================== */
+.steps{display:grid;gap:var(--gap-cards);position:relative}
+.step{position:relative;padding-left:var(--s-5);border-left:1px solid var(--hairline)}
+.step .num{
+  font-family:var(--font-data);font-size:var(--t-eyebrow);font-weight:600;
+  /* §1.5: em 12px sobre fundo escuro, --blue-glow no lugar de --blue-signal/--cond-normal */
+  letter-spacing:.16em;color:var(--blue-glow);display:block;margin-bottom:var(--s-2);
+}
+.step h3{font-size:var(--t-h4);font-family:var(--font-display);margin-bottom:var(--s-3)}
+.step p{font-size:var(--t-small);line-height:1.55;color:var(--steel-500)}
+@media (min-width:768px){
+  .steps{grid-template-columns:repeat(3,1fr);gap:var(--gap)}
+}
+@media (min-width:1024px){
+  .steps{grid-template-columns:repeat(5,1fr)}
+  .step{padding-left:0;padding-top:var(--s-5);border-left:0;border-top:1px solid var(--hairline)}
+}
+
+/* ==========================================================================
+   12. SETORES
+   ========================================================================== */
+.sectors{display:grid;gap:0;border-top:1px solid var(--hairline)}
+.sectors li{
+  display:flex;align-items:center;gap:var(--s-3);
+  min-height:56px;padding-block:var(--s-3);
+  border-bottom:1px solid var(--hairline);
+  color:var(--steel-300);
+}
+.sectors li::before{
+  content:"";width:8px;height:1px;flex:none;background:var(--cond-normal);
+}
+@media (min-width:768px){
+  .sectors{grid-template-columns:repeat(2,1fr);column-gap:var(--gap)}
+}
+@media (min-width:1024px){
+  .sectors{grid-template-columns:repeat(4,1fr)}
+}
+
+/* ==========================================================================
+   13. TREINAMENTO
+   ========================================================================== */
+.training-grid{display:grid;gap:var(--s-7)}
+.training-text p + p{margin-top:var(--s-5)}
+.formats{display:grid;gap:var(--gap-cards)}
+.format{
+  background:var(--surface-800);border:1px solid var(--hairline);
+  border-radius:var(--r-md);padding:var(--card-pad);box-shadow:var(--elev-1);
+  transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease);
+}
+.format:hover{background:var(--surface-700);border-color:rgba(47,85,245,.35);box-shadow:var(--elev-2)}
+.format p{font-size:var(--t-small);line-height:1.55;color:var(--steel-500)}
+.training-cta{margin-top:var(--sub-cta)}
+@media (min-width:1024px){
+  .training-grid{grid-template-columns:minmax(0,6fr) minmax(0,6fr);gap:var(--s-8);align-items:start}
+}
+
+/* ==========================================================================
+   14. CONTATO / FORMULÁRIO
+   ========================================================================== */
+.contact-grid{display:grid;gap:var(--s-7)}
+.field{margin-bottom:var(--s-5)}
+.field label{
+  display:block;
+  font-family:var(--font-data);font-size:var(--t-eyebrow);font-weight:600;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--steel-500);
+  margin-bottom:var(--s-2);
+}
+.field input,.field textarea{
+  width:100%;
+  min-height:52px;
+  background:var(--surface-800);
+  border:1px solid var(--hairline);
+  border-radius:var(--r-sm);
+  color:var(--steel-100);
+  padding:14px var(--s-4);
+  transition:border-color var(--dur) var(--ease),box-shadow var(--dur) var(--ease);
+}
+.field textarea{min-height:132px;resize:vertical}
+.field input::placeholder,.field textarea::placeholder{color:var(--steel-700)}
+.field input:focus,.field textarea:focus{
+  outline:none;
+  border-color:var(--blue-signal);
+  box-shadow:var(--elev-focus);
+}
+.field input:focus-visible,.field textarea:focus-visible{outline:none}
+.field .error{
+  display:none;
+  font-size:13px;line-height:1.4;color:var(--cond-critico);
+  margin-top:var(--s-2);
+}
+.field.has-error input,.field.has-error textarea{border-color:var(--cond-critico)}
+.field.has-error .error{display:block}
+.form-note{margin-top:var(--s-3);font-size:var(--t-small);color:var(--steel-500)}
+form .btn{width:100%}
+
+.form-success{
+  border:1px solid rgba(47,85,245,.35);
+  border-top:2px solid var(--cond-normal);
+  background:var(--surface-800);
+  border-radius:var(--r-md);
+  padding:var(--card-pad);
+  box-shadow:var(--elev-1);
+}
+.form-success h3{font-size:var(--t-h4);font-family:var(--font-display);margin-bottom:var(--s-3)}
+.form-success p{font-size:var(--t-small);color:var(--steel-500);line-height:1.55}
+
+.contact-list{display:grid;gap:0;border-top:1px solid var(--hairline)}
+.contact-list > div{padding-block:var(--s-4);border-bottom:1px solid var(--hairline)}
+.contact-list dt,.contact-list .k{
+  font-family:var(--font-data);font-size:var(--t-eyebrow);font-weight:600;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--steel-500);
+  margin-bottom:var(--s-2);
+}
+.contact-list dd{margin:0;color:var(--steel-300)}
+.contact-list a{
+  display:inline-flex;align-items:center;min-height:44px;
+  color:var(--blue-glow);text-decoration:underline;
+  text-decoration-thickness:1px;text-underline-offset:4px;
+  transition:text-decoration-thickness var(--dur) var(--ease);
+}
+.contact-list a:hover{text-decoration-thickness:2px}
+@media (min-width:1024px){
+  .contact-grid{grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:var(--s-8);align-items:start}
+  form .btn{width:auto;min-width:220px}
+}
+
+/* ==========================================================================
+   15. RODAPÉ
+   ========================================================================== */
+.site-footer{
+  background:var(--void);
+  border-top:1px solid var(--hairline);
+  padding-block:var(--s-9) var(--s-6);
+}
+.footer-grid{display:grid;gap:var(--s-7)}
+.footer-brand .brand{font-size:24px;margin-bottom:var(--s-3)}
+.footer-sign{color:var(--steel-500);font-size:var(--t-small)}
+.footer-tagline{color:var(--steel-300);margin-top:var(--s-3);max-width:34ch}
+.footer-col h2{
+  font-family:var(--font-data);font-size:var(--t-eyebrow);font-weight:600;
+  letter-spacing:.16em;text-transform:uppercase;color:var(--steel-500);
+  margin-bottom:var(--s-4);line-height:1.2;
+}
+.footer-col li a,.footer-col li span{
+  display:flex;align-items:center;min-height:44px;
+  font-size:var(--t-small);color:var(--steel-300);text-decoration:none;
+  transition:color var(--dur) var(--ease);
+}
+.footer-col li a:hover{color:var(--steel-100)}
+.footer-bottom{
+  margin-top:var(--s-8);padding-top:var(--s-5);
+  border-top:1px solid var(--hairline);
+  font-size:var(--t-small);color:var(--steel-500);
+}
+@media (min-width:768px){
+  .footer-grid{grid-template-columns:repeat(2,1fr);gap:var(--s-7)}
+}
+@media (min-width:1024px){
+  .footer-grid{grid-template-columns:minmax(0,4fr) repeat(3,minmax(0,2.66fr));gap:var(--s-8)}
+}
+
+/* ==========================================================================
+   16. MOVIMENTO
+   ========================================================================== */
+.reveal{opacity:0;transform:translateY(12px);transition:opacity 420ms var(--ease),transform 420ms var(--ease)}
+.reveal.is-visible{opacity:1;transform:none}
+
+.hero-part{animation:converge 900ms var(--ease) both}
+@keyframes converge{
+  from{opacity:0;transform:translate(var(--dx,0),var(--dy,0))}
+  to{opacity:1;transform:translate(0,0)}
+}
+
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{
+    animation-duration:.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
+  }
+  .reveal{transform:none}
+  .btn--primary:hover{transform:none}
+  .hero-part{animation:fadein 300ms both}
+  @keyframes fadein{from{opacity:0}to{opacity:1}}
+}
+</style>
+<noscript>
+  <style>.reveal{opacity:1;transform:none}</style>
+</noscript>
+</head>
+<body>
+
+<a class="skip-link" href="#conteudo">Ir para o conteúdo</a>
+
+<!-- Sprite de ícones (traço 1,5px, sem preenchimento) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <g id="i-preditiva" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M2 14h4l3-9 4 18 3-11 2 4h4"/><rect x="1" y="3" width="22" height="18" rx="1"/>
+    </g>
+    <g id="i-consultoria" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 21V4a1 1 0 0 1 1-1h11l5 5v13a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z"/><path d="M15 3v5h5"/><path d="M8 13h8M8 17h5"/>
+    </g>
+    <g id="i-treinamento" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 4 2 9l10 5 10-5-10-5Z"/><path d="M6 11.5V17c0 1.7 2.7 3 6 3s6-1.3 6-3v-5.5"/>
+    </g>
+    <g id="i-vibracao" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M1 12h3l2-7 3 14 3-18 3 22 2-11h6"/>
+    </g>
+    <g id="i-termografia" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M10 13.5V4a2 2 0 1 1 4 0v9.5a4 4 0 1 1-4 0Z"/><path d="M12 8v7"/>
+    </g>
+    <g id="i-laser" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="7"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/><circle cx="12" cy="12" r="1.5"/>
+    </g>
+    <g id="i-balanceamento" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 3v6M21 12h-6"/>
+    </g>
+    <g id="i-mca" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="2" y="7" width="14" height="10" rx="1"/><path d="M16 10h3a3 3 0 0 1 0 6h-3"/><path d="M6 12h3l-1.5 3 3-3"/>
+    </g>
+    <g id="i-boroscopia" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 20c4-1 6-4 7-8 1-4 4-7 8-8"/><circle cx="19" cy="4" r="2"/><path d="M2 17.5 5.5 21"/>
+    </g>
+    <g id="i-oleo" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 2.5 6.5 10a6.5 6.5 0 1 0 11 0L12 2.5Z"/><path d="M9 14a3 3 0 0 0 3 3"/>
+    </g>
+    <g id="i-ultrassom" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5 9v6"/><path d="M9 6v12"/><path d="M13 8.5v7"/><path d="M17 4v16"/><path d="M21 9v6"/>
+    </g>
+  </defs>
+</svg>
+
+<!-- ============================ HEADER ============================ -->
+<header class="site-header">
+  <div class="container">
+    <a class="brand" href="#topo" aria-label="SOLVER — início">SOLVER</a>
+
+    <nav class="nav-desktop" aria-label="Navegação principal">
+      <ul>
+        <li><a href="#sobre">Sobre</a></li>
+        <li><a href="#servicos">Serviços</a></li>
+        <li><a href="#tecnologias">Tecnologias</a></li>
+        <li><a href="#treinamento">Treinamento</a></li>
+        <li><a href="#contato">Contato</a></li>
+      </ul>
+    </nav>
+
+    <a class="btn btn--secondary btn--compact header-cta" href="#contato">Fale Conosco</a>
+
+    <button class="nav-toggle" type="button" id="navToggle"
+            aria-expanded="false" aria-controls="navMobile" aria-label="Abrir menu de navegação">
+      <span class="bars" aria-hidden="true"><span></span><span></span><span></span></span>
+    </button>
+  </div>
+
+  <nav class="nav-mobile" id="navMobile" aria-label="Navegação principal (mobile)">
+    <div class="container">
+      <ul>
+        <li><a href="#sobre">Sobre</a></li>
+        <li><a href="#servicos">Serviços</a></li>
+        <li><a href="#tecnologias">Tecnologias</a></li>
+        <li><a href="#treinamento">Treinamento</a></li>
+        <li><a href="#contato">Contato</a></li>
+      </ul>
+      <a class="btn btn--secondary" href="#contato">Fale Conosco</a>
+    </div>
+  </nav>
+</header>
+
+<main id="conteudo">
+
+  <!-- ============================ HERO ============================ -->
+  <section class="hero mesh" id="topo" aria-labelledby="hero-title">
+    <div class="container">
+      <div class="hero-grid">
+        <div>
+          <p class="eyebrow">Manutenção preditiva · Campo Grande, MS</p>
+          <h1 id="hero-title">Sua planta não precisa parar para avisar que tem um problema.</h1>
+          <p class="lead">A Solver monitora, mede e diagnostica seus ativos antes da falha. Você recebe mais do que um relatório: recebe o que fazer, quando fazer e por quê.</p>
+          <div class="hero-actions">
+            <a class="btn btn--primary" href="#contato">Fale Conosco</a>
+            <a class="btn btn--secondary" href="#servicos">Ver serviços</a>
+          </div>
+        </div>
+
+        <!--
+          Toda a imagética é SVG inline (zero requisições externas), com <title> +
+          aria-label como alternativa textual. Ao substituir por render/fotografia real,
+          usar: <img src="…" alt="…" loading="lazy" decoding="async" width="…" height="…">
+          — hero 16:9 · card 4:3 · retrato de equipe 4:5.
+        -->
+        <div class="hero-figure">
+          <svg viewBox="0 0 640 360" role="img" aria-label="Ilustração técnica: vista explodida de um conjunto rotativo — eixo, rolamento, flange e carcaça — em traço prata sobre fundo preto.">
+            <title>Vista explodida de um conjunto rotativo</title>
+            <g fill="none" stroke="#8A949E" stroke-width="1.2" opacity=".9">
+              <!-- eixo -->
+              <g class="hero-part" style="--dx:-24px;animation-delay:0ms">
+                <line x1="40" y1="180" x2="600" y2="180" stroke="#4A535C" stroke-dasharray="6 6"/>
+                <rect x="60" y="171" width="180" height="18" rx="2"/>
+                <line x1="60" y1="180" x2="240" y2="180" stroke="#4A535C"/>
+              </g>
+              <!-- flange 1 -->
+              <g class="hero-part" style="--dx:-16px;animation-delay:60ms">
+                <ellipse cx="250" cy="180" rx="14" ry="58"/>
+                <ellipse cx="250" cy="180" rx="7" ry="30"/>
+                <line x1="236" y1="122" x2="264" y2="122"/>
+                <line x1="236" y1="238" x2="264" y2="238"/>
+              </g>
+              <!-- rolamento -->
+              <g class="hero-part" style="--dx:-8px;animation-delay:120ms">
+                <ellipse cx="330" cy="180" rx="18" ry="72" stroke="#C4CCD4"/>
+                <ellipse cx="330" cy="180" rx="9" ry="44" stroke="#C4CCD4"/>
+                <circle cx="330" cy="122" r="6" stroke="#6C8CFF"/>
+                <circle cx="330" cy="238" r="6" stroke="#6C8CFF"/>
+                <circle cx="312" cy="180" r="6" stroke="#6C8CFF"/>
+                <circle cx="348" cy="180" r="6" stroke="#6C8CFF"/>
+              </g>
+              <!-- carcaça -->
+              <g class="hero-part" style="--dx:16px;animation-delay:180ms">
+                <ellipse cx="430" cy="180" rx="22" ry="96"/>
+                <ellipse cx="430" cy="180" rx="11" ry="62"/>
+                <path d="M430 84 L520 84"/>
+                <path d="M430 276 L520 276"/>
+                <ellipse cx="520" cy="180" rx="22" ry="96" stroke="#4A535C"/>
+              </g>
+              <!-- tampa -->
+              <g class="hero-part" style="--dx:24px;animation-delay:240ms">
+                <ellipse cx="588" cy="180" rx="12" ry="52"/>
+                <ellipse cx="588" cy="180" rx="5" ry="22" stroke="#4A535C"/>
+              </g>
+              <!-- cotas -->
+              <g class="hero-part" style="--dy:12px;animation-delay:300ms" stroke="#4A535C" stroke-width="1">
+                <line x1="60" y1="312" x2="600" y2="312"/>
+                <line x1="60" y1="304" x2="60" y2="320"/>
+                <line x1="330" y1="304" x2="330" y2="320"/>
+                <line x1="600" y1="304" x2="600" y2="320"/>
+              </g>
+            </g>
+            <g class="hero-part" style="--dy:12px;animation-delay:300ms" font-family="ui-monospace,monospace" font-size="12" fill="#8A949E">
+              <text x="60" y="340">01</text>
+              <text x="316" y="340">03</text>
+              <text x="580" y="340">05</text>
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <ul class="seals" aria-label="Técnicas em destaque">
+        <li class="seal">Análise de vibração</li>
+        <li class="seal">Termografia</li>
+        <li class="seal">Alinhamento a laser</li>
+        <li class="seal">Análise de óleo</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ==================== BARRA DE CREDIBILIDADE ==================== -->
+  <section class="section section--alt" id="credibilidade" aria-labelledby="cred-title">
+    <div class="container">
+      <h2 id="cred-title" class="sr-only">Por que a Solver</h2>
+      <ul class="metrics">
+        <li class="metric reveal">
+          <p class="value">[X]<span class="unit">+</span></p>
+          <p class="label">anos atuando em manutenção industrial</p>
+        </li>
+        <li class="metric reveal">
+          <p class="value">[X]</p>
+          <p class="label">técnicas preditivas em um só fornecedor</p>
+        </li>
+        <li class="metric reveal">
+          <p class="value">100<span class="unit">%</span></p>
+          <p class="label">dos laudos com recomendação técnica de ação</p>
+        </li>
+        <li class="metric reveal">
+          <p class="value">MS</p>
+          <p class="label">base em Campo Grande, atendimento regional</p>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============================ SOBRE ============================ -->
+  <section class="section" id="sobre" aria-labelledby="sobre-title">
+    <div class="container">
+      <div class="about-grid">
+        <div class="about-text reveal">
+          <p class="eyebrow">Quem somos</p>
+          <h2 id="sobre-title">Manutenção deixou de ser custo. Virou estratégia.</h2>
+          <div style="margin-top:var(--t-sub)">
+            <p class="body">A Solver Manutenção Industrial nasceu de uma constatação simples: a maior parte das paradas não planejadas dá sinal antes de acontecer. Vibração fora de padrão, temperatura subindo, óleo contaminado, desalinhamento. O sinal existe — falta quem leia.</p>
+            <p class="body">É isso que fazemos. Trabalhamos com um conjunto de técnicas preditivas para acompanhar a condição real dos seus equipamentos em operação, sem desmontagem e sem interromper a produção.</p>
+            <p class="body">Nosso trabalho não termina no laudo. Entregamos diagnóstico, prioridade de intervenção e suporte técnico para que a decisão seja tomada com base em dado, não em suposição.</p>
+          </div>
+        </div>
+
+        <ul class="diffs">
+          <li class="diff reveal"><p><strong>Diagnóstico, não descrição.</strong> Todo laudo aponta a causa provável e a ação recomendada.</p></li>
+          <li class="diff reveal"><p><strong>Priorização por criticidade.</strong> Você sabe o que resolver primeiro e o que pode esperar.</p></li>
+          <li class="diff reveal"><p><strong>Suporte após a entrega.</strong> Acompanhamos a execução e a evolução do ativo.</p></li>
+          <li class="diff reveal"><p><strong>Time técnico próprio.</strong> Quem coleta em campo é quem interpreta o dado.</p></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================== SERVIÇOS =========================== -->
+  <section class="section section--alt" id="servicos" aria-labelledby="servicos-title">
+    <div class="container">
+      <div class="section-head reveal">
+        <p class="eyebrow">O que fazemos</p>
+        <h2 id="servicos-title">Serviços que se pagam antes da próxima parada.</h2>
+        <p class="lead">Atuamos em três frentes conectadas. Você pode contratar uma delas ou integrar tudo em um programa contínuo de confiabilidade.</p>
+      </div>
+
+      <ul class="cards cards--3">
+        <li class="card reveal" style="--sev:var(--cond-normal)">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-preditiva"/></svg>
+          <h3>Manutenção Preditiva</h3>
+          <p>Monitoramento periódico ou pontual da condição dos ativos rotativos e elétricos. Identificamos desalinhamento, desbalanceamento, folga, falha de rolamento, cavitação, sobrecarga elétrica e degradação de lubrificante — com o equipamento em operação.</p>
+          <ul class="tags" aria-label="Entregas de Manutenção Preditiva">
+            <li class="tag">Rotas de coleta</li>
+            <li class="tag">Laudo técnico</li>
+            <li class="tag">Priorização de intervenção</li>
+          </ul>
+        </li>
+
+        <li class="card reveal" style="--sev:var(--cond-atencao)">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-consultoria"/></svg>
+          <h3>Consultoria em Confiabilidade</h3>
+          <p>Diagnóstico do seu programa de manutenção atual e desenho do plano que a planta precisa. Definição de criticidade de ativos, periodicidade de coleta, indicadores e rotina de análise.</p>
+          <ul class="tags" aria-label="Entregas de Consultoria em Confiabilidade">
+            <li class="tag">Criticidade de ativos</li>
+            <li class="tag">Plano de manutenção</li>
+            <li class="tag">Indicadores</li>
+          </ul>
+        </li>
+
+        <li class="card reveal" style="--sev:var(--cond-alerta)">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-treinamento"/></svg>
+          <h3>Treinamento Técnico</h3>
+          <p>Capacitação da sua equipe interna nas técnicas preditivas, com prática em campo e nos equipamentos da própria planta. Formação que reduz dependência externa.</p>
+          <ul class="tags" aria-label="Entregas de Treinamento Técnico">
+            <li class="tag">Turmas in company</li>
+            <li class="tag">Prática em campo</li>
+            <li class="tag">Material técnico</li>
+          </ul>
+        </li>
+      </ul>
+
+      <div class="services-cta reveal">
+        <a class="btn btn--primary" href="#contato">Fale Conosco</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= TECNOLOGIAS ========================= -->
+  <section class="section mesh" id="tecnologias" aria-labelledby="tec-title">
+    <div class="container">
+      <div class="section-head reveal">
+        <p class="eyebrow">Como medimos</p>
+        <h2 id="tec-title">Oito técnicas. Uma leitura integrada do seu ativo.</h2>
+        <p class="lead">Nenhuma técnica isolada conta a história inteira. A força do diagnóstico está no cruzamento dos dados.</p>
+      </div>
+
+      <ul class="cards cards--4">
+        <li class="card reveal" style="--sev:var(--cond-atencao)">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-vibracao"/></svg>
+          <h3 class="h4-like">Análise de Vibração</h3>
+          <p>A principal ferramenta de diagnóstico em máquinas rotativas. Revela desbalanceamento, desalinhamento, folgas mecânicas, falhas em rolamentos e engrenagens muito antes do ruído aparecer.</p>
+        </li>
+        <li class="card reveal" style="--sev:var(--cond-alerta)">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-termografia"/></svg>
+          <h3 class="h4-like">Termografia</h3>
+          <p>Inspeção térmica sem contato em painéis, motores, mancais e conexões elétricas. Ponto quente é falha em formação — e custa muito menos corrigir antes.</p>
+        </li>
+        <li class="card reveal" style="--sev:var(--cond-normal)">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-laser"/></svg>
+          <h3 class="h4-like">Alinhamento a Laser</h3>
+          <p>Precisão de centésimos na correção do alinhamento entre eixos. Desalinhamento é uma das maiores causas de consumo excessivo de energia e de quebra prematura de rolamento e selo.</p>
+        </li>
+        <li class="card reveal" style="--sev:var(--cond-atencao)">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-balanceamento"/></svg>
+          <h3 class="h4-like">Balanceamento Dinâmico</h3>
+          <p>Correção de desbalanceamento em campo, com o rotor no próprio local de operação. Menos vibração, menos esforço estrutural, mais vida útil.</p>
+        </li>
+        <li class="card reveal" style="--sev:var(--cond-critico)">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-mca"/></svg>
+          <h3 class="h4-like">MCA — Análise de Circuito de Motor</h3>
+          <p>Avaliação da saúde elétrica do motor: isolação, curto entre espiras, desequilíbrio de fases, condição do rotor. Enxerga o que a inspeção visual não alcança.</p>
+        </li>
+        <li class="card reveal" style="--sev:var(--cond-inativo)">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-boroscopia"/></svg>
+          <h3 class="h4-like">Boroscopia</h3>
+          <p>Inspeção visual interna de câmaras, tubulações, turbinas e componentes de difícil acesso — sem desmontagem e sem parada prolongada.</p>
+        </li>
+        <li class="card reveal" style="--sev:var(--cond-atencao)">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-oleo"/></svg>
+          <h3 class="h4-like">Análise de Óleo</h3>
+          <p>O lubrificante carrega o histórico do equipamento. Contaminação, desgaste metálico e degradação aparecem na amostra antes de aparecerem na máquina.</p>
+        </li>
+        <li class="card reveal" style="--sev:var(--cond-normal)">
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#i-ultrassom"/></svg>
+          <h3 class="h4-like">Ultrassom Industrial</h3>
+          <p>Detecção de vazamentos de ar comprimido e gases, falhas em purgadores, descargas elétricas parciais e falhas incipientes de lubrificação.</p>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ========================= COMO FUNCIONA ========================= -->
+  <section class="section section--alt" id="processo" aria-labelledby="proc-title">
+    <div class="container">
+      <div class="section-head reveal">
+        <p class="eyebrow">Nosso processo</p>
+        <h2 id="proc-title">Do primeiro contato ao plano de ação.</h2>
+      </div>
+
+      <ol class="steps">
+        <li class="step reveal">
+          <span class="num" aria-hidden="true">01</span>
+          <h3><span class="sr-only">Etapa 01 — </span>Diagnóstico inicial</h3>
+          <p>Entendemos sua planta, seus ativos críticos e o histórico de falhas. Sem isso, qualquer proposta é chute.</p>
+        </li>
+        <li class="step reveal">
+          <span class="num" aria-hidden="true">02</span>
+          <h3><span class="sr-only">Etapa 02 — </span>Definição do escopo</h3>
+          <p>Definimos quais equipamentos monitorar, com quais técnicas e em qual periodicidade. Escopo proporcional à criticidade.</p>
+        </li>
+        <li class="step reveal">
+          <span class="num" aria-hidden="true">03</span>
+          <h3><span class="sr-only">Etapa 03 — </span>Coleta em campo</h3>
+          <p>Nossa equipe executa a coleta com o equipamento em operação. Sem parada de produção.</p>
+        </li>
+        <li class="step reveal">
+          <span class="num" aria-hidden="true">04</span>
+          <h3><span class="sr-only">Etapa 04 — </span>Análise e laudo</h3>
+          <p>Interpretação técnica dos dados, identificação da causa provável e classificação da severidade.</p>
+        </li>
+        <li class="step reveal">
+          <span class="num" aria-hidden="true">05</span>
+          <h3><span class="sr-only">Etapa 05 — </span>Recomendação e suporte</h3>
+          <p>Você recebe o que precisa ser feito, em que ordem e em que prazo. E continua com nosso suporte durante a execução.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ========================= SETORES ATENDIDOS ========================= -->
+  <section class="section" id="setores" aria-labelledby="set-title">
+    <div class="container">
+      <div class="section-head reveal">
+        <p class="eyebrow">Onde atuamos</p>
+        <h2 id="set-title">Se tem máquina rotativa, tem ganho em preditiva.</h2>
+      </div>
+
+      <ul class="sectors reveal">
+        <li>Agroindústria</li>
+        <li>Frigoríficos</li>
+        <li>Usinas de açúcar e álcool</li>
+        <li>Indústria de alimentos e bebidas</li>
+        <li>Papel e celulose</li>
+        <li>Mineração e cimento</li>
+        <li>Saneamento e tratamento de água</li>
+        <li>Geração de energia</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- =========================== TREINAMENTO =========================== -->
+  <section class="section section--alt" id="treinamento" aria-labelledby="trein-title">
+    <div class="container">
+      <div class="training-grid">
+        <div class="training-text reveal">
+          <p class="eyebrow">Capacitação</p>
+          <h2 id="trein-title">Sua equipe lendo o próprio dado.</h2>
+          <div style="margin-top:var(--t-sub)">
+            <p class="body">Contratar preditiva é o primeiro passo. Formar quem interpreta o resultado é o que sustenta o programa no longo prazo.</p>
+            <p class="body">Nossos treinamentos são desenhados para o time que está na planta todo dia: linguagem direta, prática nos equipamentos reais da empresa e foco em decisão, não em teoria.</p>
+          </div>
+          <div class="training-cta">
+            <a class="btn btn--primary" href="#contato">Quero um treinamento para minha equipe</a>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="sr-only">Formatos</h3>
+          <ul class="formats">
+            <li class="format reveal"><p><strong>In company</strong> — turma fechada, na sua planta, com seus ativos.</p></li>
+            <li class="format reveal"><p><strong>Modular</strong> — por técnica, para quem quer aprofundar em um ponto específico.</p></li>
+            <li class="format reveal"><p><strong>Acompanhamento</strong> — nosso analista em campo junto com a sua equipe durante as rotas.</p></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================== CONTATO / CTA FINAL ======================== -->
+  <section class="section section--void" id="contato" aria-labelledby="contato-title">
+    <div class="container">
+      <div class="section-head reveal">
+        <p class="eyebrow">Vamos conversar</p>
+        <h2 id="contato-title">A próxima parada não precisa ser uma surpresa.</h2>
+        <p class="lead">Conte o que está acontecendo na sua planta. Retornamos com uma avaliação técnica inicial, sem compromisso.</p>
+      </div>
+
+      <div class="contact-grid">
+        <div class="reveal">
+          <form id="contatoForm" novalidate aria-describedby="formNote">
+            <div class="field">
+              <label for="nome">Nome</label>
+              <input type="text" id="nome" name="nome" autocomplete="name" required aria-describedby="erro-nome">
+              <p class="error" id="erro-nome">Informe seu nome completo</p>
+            </div>
+
+            <div class="field">
+              <label for="email">E-mail corporativo</label>
+              <input type="email" id="email" name="email" autocomplete="email" required aria-describedby="erro-email">
+              <p class="error" id="erro-email">Informe um e-mail corporativo válido</p>
+            </div>
+
+            <div class="field">
+              <label for="empresa">Empresa</label>
+              <input type="text" id="empresa" name="empresa" autocomplete="organization" required aria-describedby="erro-empresa">
+              <p class="error" id="erro-empresa">Informe o nome da sua empresa</p>
+            </div>
+
+            <div class="field">
+              <label for="telefone">Telefone (opcional)</label>
+              <input type="tel" id="telefone" name="telefone" autocomplete="tel">
+            </div>
+
+            <div class="field">
+              <label for="mensagem">Como podemos ajudar?</label>
+              <textarea id="mensagem" name="mensagem" rows="5" required aria-describedby="erro-mensagem"></textarea>
+              <p class="error" id="erro-mensagem">Descreva o que está acontecendo na sua planta</p>
+            </div>
+
+            <button class="btn btn--primary" type="submit">Fale Conosco</button>
+            <p class="form-note" id="formNote">Seus dados são usados apenas para o retorno do nosso time técnico.</p>
+          </form>
+
+          <div class="form-success" id="formSuccess" hidden tabindex="-1" role="status" aria-live="polite">
+            <h3>Mensagem enviada.</h3>
+            <p>Seus dados são usados apenas para o retorno do nosso time técnico.</p>
+          </div>
+        </div>
+
+        <div class="reveal">
+          <h3 class="sr-only">Contato direto</h3>
+          <dl class="contact-list">
+            <div>
+              <dt>E-mail</dt>
+              <dd><a href="mailto:contato@solvermanutencao.com.br">contato@solvermanutencao.com.br</a></dd>
+            </div>
+            <div>
+              <dt>Endereço</dt>
+              <dd>Av. Três Barras, 332, sala 11 — Vilas Boas, Campo Grande/MS</dd>
+            </div>
+            <div>
+              <dt>Instagram</dt>
+              <dd><a href="https://www.instagram.com/solvermanutencao" target="_blank" rel="noopener noreferrer">@solvermanutencao</a></dd>
+            </div>
+            <div>
+              <dt>LinkedIn</dt>
+              <dd>Solver Manutenção Industrial</dd>
+            </div>
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============================ RODAPÉ ============================ -->
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <span class="brand" aria-hidden="true">SOLVER</span>
+        <p class="footer-sign">SOLVER — Manutenção Industrial</p>
+        <p class="footer-tagline">Transformando manutenção em estratégia.</p>
+      </div>
+
+      <nav class="footer-col" aria-labelledby="fnav">
+        <h2 id="fnav">Navegação</h2>
+        <ul>
+          <li><a href="#sobre">Sobre</a></li>
+          <li><a href="#servicos">Serviços</a></li>
+          <li><a href="#tecnologias">Tecnologias</a></li>
+          <li><a href="#treinamento">Treinamento</a></li>
+          <li><a href="#contato">Contato</a></li>
+        </ul>
+      </nav>
+
+      <div class="footer-col">
+        <h2 id="fserv">Serviços</h2>
+        <ul aria-labelledby="fserv">
+          <li><a href="#servicos">Manutenção Preditiva</a></li>
+          <li><a href="#servicos">Consultoria em Confiabilidade</a></li>
+          <li><a href="#servicos">Treinamento Técnico</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h2 id="fcont">Contato</h2>
+        <ul aria-labelledby="fcont">
+          <li><a href="mailto:contato@solvermanutencao.com.br">contato@solvermanutencao.com.br</a></li>
+          <li><span>Av. Três Barras, 332, sala 11 — Vilas Boas, Campo Grande/MS</span></li>
+          <li><a href="https://www.instagram.com/solvermanutencao" target="_blank" rel="noopener noreferrer">@solvermanutencao</a></li>
+          <li><span>Solver Manutenção Industrial</span></li>
+        </ul>
+      </div>
+    </div>
+
+    <p class="footer-bottom">© <span id="ano">2026</span> Solver Manutenção Industrial. Todos os direitos reservados.</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- Ano do rodapé ---------- */
+  var ano = document.getElementById('ano');
+  if (ano) ano.textContent = String(new Date().getFullYear());
+
+  /* ---------- Menu mobile ---------- */
+  var toggle = document.getElementById('navToggle');
+  var panel  = document.getElementById('navMobile');
+
+  function closeNav() {
+    panel.classList.remove('is-open');
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.setAttribute('aria-label', 'Abrir menu de navegação');
+  }
+  function openNav() {
+    panel.classList.add('is-open');
+    toggle.setAttribute('aria-expanded', 'true');
+    toggle.setAttribute('aria-label', 'Fechar menu de navegação');
+  }
+
+  toggle.addEventListener('click', function () {
+    if (toggle.getAttribute('aria-expanded') === 'true') { closeNav(); } else { openNav(); }
+  });
+
+  panel.addEventListener('click', function (e) {
+    if (e.target.closest('a')) closeNav();
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') {
+      closeNav();
+      toggle.focus();
+    }
+  });
+
+  /* ---------- Entrada de seção: fade + 12px, escalonado 60ms, uma vez ---------- */
+  var reveals = Array.prototype.slice.call(document.querySelectorAll('.reveal'));
+
+  if (!('IntersectionObserver' in window)) {
+    reveals.forEach(function (el) { el.classList.add('is-visible'); });
+  } else {
+    var io = new IntersectionObserver(function (entries) {
+      var shown = 0;
+      entries.forEach(function (entry) {
+        if (!entry.isIntersecting) return;
+        var el = entry.target;
+        el.style.transitionDelay = (shown * 60) + 'ms';
+        el.classList.add('is-visible');
+        shown++;
+        io.unobserve(el);
+      });
+    }, { rootMargin: '0px 0px -10% 0px', threshold: 0.12 });
+
+    reveals.forEach(function (el) { io.observe(el); });
+  }
+
+  /* ---------- Scroll suave com compensação do header fixo ---------- */
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  document.addEventListener('click', function (e) {
+    var link = e.target.closest('a[href^="#"]');
+    if (!link) return;
+    var id = link.getAttribute('href');
+    if (!id || id === '#') return;
+    var target = document.querySelector(id);
+    if (!target) return;
+
+    e.preventDefault();
+    var header = document.querySelector('.site-header');
+    var offset = header ? header.offsetHeight + 16 : 0;
+    var top = target.getBoundingClientRect().top + window.pageYOffset - offset;
+
+    window.scrollTo({ top: top, behavior: reduce.matches ? 'auto' : 'smooth' });
+
+    if (history.replaceState) history.replaceState(null, '', id);
+    target.setAttribute('tabindex', '-1');
+    target.focus({ preventScroll: true });
+  });
+
+  /* ---------- Validação do formulário ---------- */
+  var form    = document.getElementById('contatoForm');
+  var success = document.getElementById('formSuccess');
+  var emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+  function setError(input, hasError) {
+    var field = input.closest('.field');
+    field.classList.toggle('has-error', hasError);
+    input.setAttribute('aria-invalid', hasError ? 'true' : 'false');
+  }
+
+  function validate(input) {
+    var value = input.value.trim();
+    if (!input.hasAttribute('required')) return true;
+    if (!value) return false;
+    if (input.type === 'email') return emailRe.test(value);
+    return true;
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var fields = Array.prototype.slice.call(form.querySelectorAll('input, textarea'));
+    var firstInvalid = null;
+
+    fields.forEach(function (input) {
+      var ok = validate(input);
+      setError(input, !ok);
+      if (!ok && !firstInvalid) firstInvalid = input;
+    });
+
+    if (firstInvalid) { firstInvalid.focus(); return; }
+
+    /* Sucesso: o formulário é substituído por um bloco de confirmação, não por um toast. */
+    form.hidden = true;
+    success.hidden = false;
+    success.focus();
+  });
+
+  form.addEventListener('input', function (e) {
+    var input = e.target;
+    if (!input.closest('.field')) return;
+    if (input.closest('.field').classList.contains('has-error')) {
+      setError(input, !validate(input));
+    }
+  });
+})();
+</script>
+</body>
+</html>
