@@ -1,6 +1,8 @@
 # Pacote de design: Amorim e Advogados Associados
 
-Tier 1, uma única tomada de 6 segundos. Conceito escolhido: **O café da conversa**.
+Conceito escolhido: **O café da conversa**.
+
+Mudança de rota (23/09/2026): a cena de abertura virou uma **ilustração em SVG controlada pela rolagem**, no lugar do vídeo gerado. Motivo: a conta Higgsfield está no plano gratuito, que não permite gerar pela conexão, e o teste grátis deixou de aparecer. Decisão do usuário. Nenhum crédito foi gasto.
 Todo texto entre aspas neste documento vai para o site exatamente como está escrito.
 Números de faixa e altura são pontos de partida, validados depois pelo teste de rolagem.
 
@@ -61,19 +63,21 @@ Longe dos visuais proibidos: nada de creme com terracota, nada de fundo quase pr
 
 ## 4. Mapa de faixas do herói
 
-Herói com 500vh (faixa de rolagem de 400vh). Desvio assumido dos 400vh padrão: três faixas precisam de mais espaço para cada platô passar de 80vh. Todo o texto do herói fica na metade esquerda, sobre a parede calma; a xícara e a cadeira ficam livres à direita.
+Herói com 500vh no computador (faixa de rolagem de 400vh) e 420vh no celular. Desvio assumido dos 400vh padrão: três faixas precisam de mais espaço para cada platô passar de 80vh. No computador, o texto fica na metade esquerda, sobre a parede calma; no celular, no alto da tela. A xícara e a cadeira ficam livres.
 
-| Faixa | Intervalo (ponto de partida) | Momento do vídeo | Texto (literal) | Entrada |
+| Faixa | Intervalo (ponto de partida) | Momento da cena | Texto (literal) | Entrada |
 |---|---|---|---|---|
 | 1 | 0,00 a 0,28 | O café começa a cair na xícara quase vazia; o vapor começa | "Uma vida inteira de trabalho" / "merece ser ouvida com calma." | Descida (drift-down), ecoa o café caindo; abre já montada no carregamento |
 | 2 | 0,32 a 0,64 | A xícara enche, a câmera desce devagar, o vapor faz curvas | "O INSS negou seu benefício?" / "A gente lê a decisão com você e explica os caminhos possíveis." | Do desfocado ao nítido, ecoa o vapor abrindo a vista |
 | 3 (repouso) | 0,70 a 1,00 | O café para, a xícara cheia descansa, o vapor sobe, a cadeira vazia espera | Etiqueta "Amorim e Advogados Associados" / título "Sente-se. Vamos conversar." / linha "Direito previdenciário e outras áreas, em Bandeirantes, Campo Grande e Jaraguari." / botão "Agendar uma conversa" / link "Como funciona" | Palavra por palavra subindo, ecoa o vapor subindo; depois a linha, depois os botões |
 
-Legibilidade: a região calma é uma parede clara e iluminada, então o sistema é invertido: texto escuro sobre véu claro (scrim de névoa) com halo claro no lugar da sombra escura. A auditoria procura o pixel mais escuro sob o texto, com o véu aplicado, e exige contraste de pelo menos 3,5:1. Decisão final contra o pior quadro do vídeo aprovado.
+Legibilidade: a região calma é uma parede clara e iluminada, então o sistema é invertido: texto escuro sobre véu claro (scrim de névoa) com halo claro no lugar da sombra escura. A auditoria procura o pixel mais escuro sob o texto, com o véu aplicado, e exige contraste de pelo menos 3,5:1. Resultado medido em 23/09/2026: pior caso 4,43:1 no computador e 5,0:1 no celular.
 
-## 5. Herói estático (celulares e movimento reduzido)
+Teste de rolagem (computador, 900px de altura): com passos de 120px, as faixas ficam inteiras por 7, 6 e 18 passos; com passos de 360px, nenhuma faixa é pulada.
 
-Sobre o quadro final, recortado para manter a xícara à vista:
+## 5. Herói estático (movimento reduzido e navegador sem JavaScript)
+
+Como não há vídeo pesado, o celular recebe a cena animada. A versão parada fica para quem pede movimento reduzido e para navegadores sem JavaScript, sobre o quadro final da cena:
 - Etiqueta: "Amorim e Advogados Associados"
 - Título: "Sente-se. Vamos conversar."
 - Linha: "Uma vida inteira de trabalho merece ser ouvida com calma. Direito previdenciário e outras áreas, em Bandeirantes, Campo Grande e Jaraguari."
@@ -128,7 +132,7 @@ Navegação: marca "Amorim e Advogados Associados" · "Previdenciário" · "Outr
   - "Laudos, exames e receitas, se o caso for de saúde"
   - "Carta do INSS com a negativa, se houver"
   - "Comprovante de endereço"
-- Mecânica: cada item marcado enche a xícara desenhada um pouco mais, com transição suave; desmarcar esvazia com suavidade. Com tudo marcado, o vapor aparece e surge o texto "Pronto. Com isso em mãos, a primeira conversa rende muito mais." com o botão "Agendar uma conversa". Movimento reduzido: sem animação, estado final imediato.
+- Contador visível no canto da xícara: "0/7" até "7/7". Mecânica: cada item marcado enche a xícara desenhada um pouco mais, com transição suave; desmarcar esvazia com suavidade. Com tudo marcado, o vapor aparece e surge o texto "Pronto. Com isso em mãos, a primeira conversa rende muito mais." com o botão "Agendar uma conversa". Movimento reduzido: sem animação, estado final imediato.
 
 ### 06 · Dúvidas (sanfona em coluna estreita)
 - Etiqueta: "06 · Dúvidas"
@@ -139,7 +143,7 @@ Navegação: marca "Amorim e Advogados Associados" · "Previdenciário" · "Outr
 - "Como sei que estou falando com o escritório de verdade?" · "Desconfie de qualquer mensagem que peça dinheiro para liberar valores de processo. Esse é o golpe do falso advogado. [PENDENTE: política do escritório.] Na dúvida, ligue para o número deste site antes de fazer qualquer pagamento."
 - "Onde vocês atendem?" · "Em Bandeirantes, Campo Grande e Jaraguari. [PENDENTE: endereços, horários e atendimento a distância.]"
 
-### 07 · Contato (quadro final do vídeo em tela cheia, cartão com formulário por cima)
+### 07 · Contato (quadro final da cena, fixo enquanto o cartão com o formulário rola por cima)
 - Etiqueta: "07 · Contato"
 - Título: "A cadeira está livre."
 - Texto: "Conte sua situação e a gente marca um horário para conversar."
@@ -149,16 +153,19 @@ Navegação: marca "Amorim e Advogados Associados" · "Previdenciário" · "Outr
 - Aviso: "Sua mensagem abre no WhatsApp do escritório. Este site não guarda seus dados. Não precisa mandar documentos nem detalhes de saúde por aqui."
 - Estado de sucesso: "Abrimos o WhatsApp com a sua mensagem. É só tocar em enviar."
 - Destino do formulário: monta a mensagem e abre o WhatsApp do escritório (nada passa por servidor). A confirmar com o escritório.
+- Mensagens de validação: "Preencha seu nome." · "Preencha um telefone com DDD."
+- Modelo da mensagem enviada ao WhatsApp: "Nome:" · "Telefone:" · "Cidade:" · "Assunto:" seguidos do que a pessoa digitou.
 
 ### Rodapé
 - "Amorim e Advogados Associados" · "OAB/MS [PENDENTE]" · "Dra. Rafaela Amorim · OAB/MS [PENDENTE]"
 - Endereços e horários [PENDENTE]
 - "Conteúdo informativo. Não substitui a análise do seu caso por um advogado."
-- "Imagens ilustrativas criadas com inteligência artificial."
+- "Ilustrações criadas com auxílio de inteligência artificial."
 - "© 2026 Amorim e Advogados Associados"
 
 ## 7. Camada vetorial
 
+- A cena de abertura, em camadas (parede e luz, cadeira desfocada e nítida, mesa, café, xícara, vapor, poeira na luz). A rolagem enche a xícara, afina e corta o fio de café, deixa cair a última gota, faz a cadeira entrar em foco e aproxima a câmera um pouco.
 - Elemento assinatura, **o fio de vapor**: uma única linha desenhada à mão em SVG que continua o vapor da xícara do herói e se desenha pela página conforme a rolagem, passando pelos quatro pontos do "Como funciona" e terminando enrolada no botão do contato. Sem ela, a página perde o fio que liga a xícara à conversa.
 - Ambiente fixo atrás de tudo: uma mancha de luz de janela, bem desfocada, que desliza devagar (ciclo de 80s), mais uma textura leve de linho.
 - Ícones de linha que se desenham na entrada: três em "Outras áreas" (uma carteira de trabalho, duas alianças, uma sacola de compras) e quatro no "Como funciona" (balão de conversa, pasta aberta, bifurcação de caminho, duas cadeiras frente a frente).
