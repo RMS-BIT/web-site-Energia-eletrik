@@ -5,3 +5,7 @@ dist
 
 # Ignore the output video from Git but not videos you import into src/.
 out
+
+# Material bruto do cliente e áudios gerados (não versionar)
+public/clips
+public/audio

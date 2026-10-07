@@ -1,4 +1,6 @@
 import { Composition, Folder } from "remotion";
+import { Anuncio, anuncioPadrao, anuncioSchema } from "./Anuncio/Anuncio";
+import { DURACAO_TOTAL, FPS } from "./Anuncio/timeline";
 import { HelloWorld } from "./HelloWorld";
 import { Logo } from "./HelloWorld/Logo";
 import { Title } from "./HelloWorld/Title";
@@ -50,7 +52,18 @@ export const RemotionRoot: React.FC = () => {
           titleColor: "#000000",
         }}
       />
-
+      <Composition
+        // Anúncio vertical 9:16 para Reels/Stories:
+        // npx remotion render AnuncioSolver out/anuncio.mp4
+        id="AnuncioSolver"
+        component={Anuncio}
+        durationInFrames={DURACAO_TOTAL}
+        fps={FPS}
+        width={1080}
+        height={1920}
+        schema={anuncioSchema}
+        defaultProps={anuncioPadrao}
+      />
     </>
   );
 };
