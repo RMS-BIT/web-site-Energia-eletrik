@@ -9,3 +9,5 @@ out
 # Material bruto do cliente e áudios gerados (não versionar)
 public/clips
 public/audio
+public/voz
+public/marca

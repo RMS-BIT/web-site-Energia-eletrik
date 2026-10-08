@@ -1,6 +1,12 @@
 import { Composition, Folder } from "remotion";
 import { Anuncio, anuncioPadrao, anuncioSchema } from "./Anuncio/Anuncio";
 import { DURACAO_TOTAL, FPS } from "./Anuncio/timeline";
+import {
+  AnuncioImageador,
+  imageadorPadrao,
+  imageadorSchema,
+} from "./AnuncioImageador/AnuncioImageador";
+import { DURACAO as DURACAO_IMAGEADOR } from "./AnuncioImageador/roteiro";
 import { HelloWorld } from "./HelloWorld";
 import { Logo } from "./HelloWorld/Logo";
 import { Title } from "./HelloWorld/Title";
@@ -63,6 +69,18 @@ export const RemotionRoot: React.FC = () => {
         height={1920}
         schema={anuncioSchema}
         defaultProps={anuncioPadrao}
+      />
+      <Composition
+        // Anúncio do imageador acústico com locução:
+        // npx remotion render AnuncioImageador out/imageador.mp4
+        id="AnuncioImageador"
+        component={AnuncioImageador}
+        durationInFrames={DURACAO_IMAGEADOR}
+        fps={FPS}
+        width={1080}
+        height={1920}
+        schema={imageadorSchema}
+        defaultProps={imageadorPadrao}
       />
     </>
   );

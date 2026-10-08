@@ -1,0 +1,449 @@
+{
+  "voz": "pf_dora",
+  "frases": [
+    {
+      "arquivo": "voz/frase00.wav",
+      "duracao": 6.842,
+      "legenda": "você sabia que um vazamento de ar comprimido pode estar custando caro pra sua empresa? e você nem consegue ouvir.",
+      "palavras": [
+        {
+          "palavra": "você",
+          "inicio": 0.0,
+          "fim": 0.264
+        },
+        {
+          "palavra": "sabia",
+          "inicio": 0.264,
+          "fim": 0.579
+        },
+        {
+          "palavra": "que",
+          "inicio": 0.579,
+          "fim": 0.792
+        },
+        {
+          "palavra": "um",
+          "inicio": 0.792,
+          "fim": 0.954
+        },
+        {
+          "palavra": "vazamento",
+          "inicio": 0.954,
+          "fim": 1.472
+        },
+        {
+          "palavra": "de",
+          "inicio": 1.472,
+          "fim": 1.634
+        },
+        {
+          "palavra": "ar",
+          "inicio": 1.634,
+          "fim": 1.796
+        },
+        {
+          "palavra": "comprimido",
+          "inicio": 1.796,
+          "fim": 2.365
+        },
+        {
+          "palavra": "pode",
+          "inicio": 2.365,
+          "fim": 2.629
+        },
+        {
+          "palavra": "estar",
+          "inicio": 2.629,
+          "fim": 2.943
+        },
+        {
+          "palavra": "custando",
+          "inicio": 2.943,
+          "fim": 3.41
+        },
+        {
+          "palavra": "caro",
+          "inicio": 3.41,
+          "fim": 3.674
+        },
+        {
+          "palavra": "pra",
+          "inicio": 3.674,
+          "fim": 3.887
+        },
+        {
+          "palavra": "sua",
+          "inicio": 3.887,
+          "fim": 4.1
+        },
+        {
+          "palavra": "empresa?",
+          "inicio": 4.1,
+          "fim": 4.517
+        },
+        {
+          "palavra": "e",
+          "inicio": 4.927,
+          "fim": 5.075
+        },
+        {
+          "palavra": "você",
+          "inicio": 5.075,
+          "fim": 5.36
+        },
+        {
+          "palavra": "nem",
+          "inicio": 5.36,
+          "fim": 5.59
+        },
+        {
+          "palavra": "consegue",
+          "inicio": 5.59,
+          "fim": 6.093
+        },
+        {
+          "palavra": "ouvir.",
+          "inicio": 6.093,
+          "fim": 6.433
+        }
+      ]
+    },
+    {
+      "arquivo": "voz/frase01.wav",
+      "duracao": 2.853,
+      "legenda": "pra isso, a SOLVER usa o imageador acústico.",
+      "palavras": [
+        {
+          "palavra": "pra",
+          "inicio": 0.0,
+          "fim": 0.232
+        },
+        {
+          "palavra": "isso,",
+          "inicio": 0.232,
+          "fim": 0.52
+        },
+        {
+          "palavra": "a",
+          "inicio": 0.52,
+          "fim": 0.669
+        },
+        {
+          "palavra": "SOLVER",
+          "inicio": 0.669,
+          "fim": 1.067
+        },
+        {
+          "palavra": "usa",
+          "inicio": 1.067,
+          "fim": 1.299
+        },
+        {
+          "palavra": "o",
+          "inicio": 1.299,
+          "fim": 1.449
+        },
+        {
+          "palavra": "imageador",
+          "inicio": 1.449,
+          "fim": 2.012
+        },
+        {
+          "palavra": "acústico.",
+          "inicio": 2.012,
+          "fim": 2.521
+        }
+      ]
+    },
+    {
+      "arquivo": "voz/frase02.wav",
+      "duracao": 5.135,
+      "legenda": "ele transforma o som do vazamento em imagem e mostra exatamente onde está o problema.",
+      "palavras": [
+        {
+          "palavra": "ele",
+          "inicio": 0.0,
+          "fim": 0.224
+        },
+        {
+          "palavra": "transforma",
+          "inicio": 0.224,
+          "fim": 0.822
+        },
+        {
+          "palavra": "o",
+          "inicio": 0.822,
+          "fim": 0.966
+        },
+        {
+          "palavra": "som",
+          "inicio": 0.966,
+          "fim": 1.19
+        },
+        {
+          "palavra": "do",
+          "inicio": 1.19,
+          "fim": 1.361
+        },
+        {
+          "palavra": "vazamento",
+          "inicio": 1.361,
+          "fim": 1.905
+        },
+        {
+          "palavra": "em",
+          "inicio": 1.905,
+          "fim": 2.076
+        },
+        {
+          "palavra": "imagem",
+          "inicio": 2.076,
+          "fim": 2.46
+        },
+        {
+          "palavra": "e",
+          "inicio": 2.46,
+          "fim": 2.604
+        },
+        {
+          "palavra": "mostra",
+          "inicio": 2.604,
+          "fim": 2.989
+        },
+        {
+          "palavra": "exatamente",
+          "inicio": 2.989,
+          "fim": 3.586
+        },
+        {
+          "palavra": "onde",
+          "inicio": 3.586,
+          "fim": 3.864
+        },
+        {
+          "palavra": "está",
+          "inicio": 3.864,
+          "fim": 4.141
+        },
+        {
+          "palavra": "o",
+          "inicio": 4.141,
+          "fim": 4.286
+        },
+        {
+          "palavra": "problema.",
+          "inicio": 4.286,
+          "fim": 4.776
+        }
+      ]
+    },
+    {
+      "arquivo": "voz/frase03.wav",
+      "duracao": 5.285,
+      "legenda": "na hora, ele estima a taxa de vazamento, o custo por ano e até a emissão de CO₂.",
+      "palavras": [
+        {
+          "palavra": "na",
+          "inicio": 0.0,
+          "fim": 0.401
+        },
+        {
+          "palavra": "hora,",
+          "inicio": 0.401,
+          "fim": 1.052
+        },
+        {
+          "palavra": "ele",
+          "inicio": 1.147,
+          "fim": 1.391
+        },
+        {
+          "palavra": "estima",
+          "inicio": 1.391,
+          "fim": 1.811
+        },
+        {
+          "palavra": "a",
+          "inicio": 1.811,
+          "fim": 1.968
+        },
+        {
+          "palavra": "taxa",
+          "inicio": 1.968,
+          "fim": 2.27
+        },
+        {
+          "palavra": "de",
+          "inicio": 2.27,
+          "fim": 2.457
+        },
+        {
+          "palavra": "vazamento,",
+          "inicio": 2.457,
+          "fim": 3.05
+        },
+        {
+          "palavra": "o",
+          "inicio": 3.349,
+          "fim": 3.452
+        },
+        {
+          "palavra": "custo",
+          "inicio": 3.452,
+          "fim": 3.687
+        },
+        {
+          "palavra": "por",
+          "inicio": 3.687,
+          "fim": 3.846
+        },
+        {
+          "palavra": "ano",
+          "inicio": 3.846,
+          "fim": 4.005
+        },
+        {
+          "palavra": "e",
+          "inicio": 4.005,
+          "fim": 4.108
+        },
+        {
+          "palavra": "até",
+          "inicio": 4.108,
+          "fim": 4.267
+        },
+        {
+          "palavra": "a",
+          "inicio": 4.267,
+          "fim": 4.369
+        },
+        {
+          "palavra": "emissão",
+          "inicio": 4.369,
+          "fim": 4.68
+        },
+        {
+          "palavra": "de",
+          "inicio": 4.68,
+          "fim": 4.802
+        },
+        {
+          "palavra": "CO₂.",
+          "inicio": 4.802,
+          "fim": 4.961
+        }
+      ]
+    },
+    {
+      "arquivo": "voz/frase04.wav",
+      "duracao": 4.239,
+      "legenda": "menos desperdício, mais eficiência e manutenção no ponto certo.",
+      "palavras": [
+        {
+          "palavra": "menos",
+          "inicio": 0.0,
+          "fim": 0.375
+        },
+        {
+          "palavra": "desperdício,",
+          "inicio": 0.375,
+          "fim": 1.113
+        },
+        {
+          "palavra": "mais",
+          "inicio": 1.236,
+          "fim": 1.538
+        },
+        {
+          "palavra": "eficiência",
+          "inicio": 1.538,
+          "fim": 2.189
+        },
+        {
+          "palavra": "e",
+          "inicio": 2.189,
+          "fim": 2.345
+        },
+        {
+          "palavra": "manutenção",
+          "inicio": 2.345,
+          "fim": 2.996
+        },
+        {
+          "palavra": "no",
+          "inicio": 2.996,
+          "fim": 3.182
+        },
+        {
+          "palavra": "ponto",
+          "inicio": 3.182,
+          "fim": 3.542
+        },
+        {
+          "palavra": "certo.",
+          "inicio": 3.542,
+          "fim": 3.902
+        }
+      ]
+    },
+    {
+      "arquivo": "voz/frase05.wav",
+      "duracao": 3.301,
+      "legenda": "SOLVER Manutenção Industrial. definir & resolver.",
+      "palavras": [
+        {
+          "palavra": "SOLVER",
+          "inicio": 0.0,
+          "fim": 0.404
+        },
+        {
+          "palavra": "Manutenção",
+          "inicio": 0.404,
+          "fim": 1.032
+        },
+        {
+          "palavra": "Industrial.",
+          "inicio": 1.032,
+          "fim": 1.66
+        },
+        {
+          "palavra": "definir",
+          "inicio": 1.798,
+          "fim": 2.254
+        },
+        {
+          "palavra": "&",
+          "inicio": 2.254,
+          "fim": 2.405
+        },
+        {
+          "palavra": "resolver.",
+          "inicio": 2.405,
+          "fim": 2.917
+        }
+      ]
+    },
+    {
+      "arquivo": "voz/frase06.wav",
+      "duracao": 1.765,
+      "legenda": "agende sua inspeção.",
+      "palavras": [
+        {
+          "palavra": "agende",
+          "inicio": 0.0,
+          "fim": 0.504
+        },
+        {
+          "palavra": "sua",
+          "inicio": 0.504,
+          "fim": 0.798
+        },
+        {
+          "palavra": "inspeção.",
+          "inicio": 0.798,
+          "fim": 1.443
+        }
+      ]
+    }
+  ]
+}

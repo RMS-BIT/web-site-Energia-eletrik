@@ -72,6 +72,34 @@ Os textos (marca, títulos, slogan, CTA, contato) são props editáveis no Studi
 (`npm run dev`) ou em `anuncioPadrao`, em `src/Anuncio/Anuncio.tsx`.
 A fonte Montserrat está em `public/fontes` (licença SIL OFL 1.1).
 
+## Anúncio do imageador acústico (AnuncioImageador)
+
+Vertical 9:16, ~32 s, com locução de IA, legendas sincronizadas palavra a
+palavra, anéis de sonar, cartões de leitura e cartela com o logo animado.
+Código em `src/AnuncioImageador/`. Tempos de cena e legendas saem de
+`src/AnuncioImageador/voz.json`.
+
+Arquivos fora do Git: `public/clips/6514.mp4` (+ clipes do anúncio anterior),
+`public/marca/` (logos enviados pela empresa e o fundo limpo gerado a partir
+do logo claro) e `public/voz/`.
+
+```console
+# Locução (Kokoro, TTS local, voz pt-BR) + tempos das palavras
+pip install kokoro-onnx soundfile   # modelos: github.com/thewh1teagle/kokoro-onnx/releases
+python scripts/gerar_voz.py <pasta_modelos> pf_dora 1.05
+python3 scripts/alinhar_legendas.py
+
+# Trilha e efeitos
+python3 scripts/gerar_audio_imageador.py 31.7 public/audio
+
+npx remotion render AnuncioImageador out/imageador.mp4
+ffmpeg -i out/imageador.mp4 -c:v copy -af loudnorm=I=-14:TP=-1.5:LRA=11 -c:a aac -b:a 192k out/imageador-final.mp4
+```
+
+Para trocar a voz por outra (ex.: ElevenLabs), basta gravar um WAV por frase
+em `public/voz/fraseNN.wav`, atualizar as durações em `voz.json` e rodar
+`alinhar_legendas.py`.
+
 ## Docs
 
 Get started with Remotion by reading the [fundamentals page](https://www.remotion.dev/docs/the-fundamentals).
