@@ -105,6 +105,28 @@ Para trocar a voz por outra (ex.: ElevenLabs), basta gravar um WAV por frase
 em `public/voz/fraseNN.wav`, atualizar as durações em `voz.json` e rodar
 `alinhar_legendas.py`.
 
+## Roteiro Master 43 s (Roteiro43)
+
+Vídeo vertical de 43 s (1290 quadros): técnico → máquina → preparação →
+equipamento → sensor → análise → montagem → assinatura. HUD minimalista
+(retículos, scan 3D, chamadas técnicas, TARGET DETECTED, ANALYZING/ANALYSIS
+COMPLETE) ancorado por **rastreamento de movimento real** (OpenCV, fluxo
+óptico Lucas-Kanade). Os dados da tela do equipamento não são alterados.
+Código em `src/Roteiro43/`.
+
+```console
+# 1. Brutos em public/clips/: r1.mp4 (1007_1), r11.mp4 (1007_11), r12.mp4 (1007_12), 6518.mp4
+python3 scripts/preparar_planos_r43.py          # corta os planos (câmera lenta com minterpolate)
+# 2. Rastreamento (pip install opencv-python-headless)
+python scripts/rastrear_r43.py                  # gera src/Roteiro43/rastreio.json
+# 3. Sound design (sintetizado)
+python3 scripts/gerar_audio_r43.py
+# 4. Render
+npx remotion render Roteiro43 out/roteiro43.mp4
+```
+
+`comTrilha: false` nas props tira a trilha e deixa só os efeitos sonoros.
+
 ## Docs
 
 Get started with Remotion by reading the [fundamentals page](https://www.remotion.dev/docs/the-fundamentals).

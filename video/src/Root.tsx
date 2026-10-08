@@ -7,6 +7,8 @@ import {
   imageadorSchema,
 } from "./AnuncioImageador/AnuncioImageador";
 import { DURACAO as DURACAO_IMAGEADOR } from "./AnuncioImageador/roteiro";
+import { Roteiro43, r43Padrao, r43Schema } from "./Roteiro43/Roteiro43";
+import { DURACAO as DURACAO_R43 } from "./Roteiro43/timeline";
 import { HelloWorld } from "./HelloWorld";
 import { Logo } from "./HelloWorld/Logo";
 import { Title } from "./HelloWorld/Title";
@@ -81,6 +83,18 @@ export const RemotionRoot: React.FC = () => {
         height={1920}
         schema={imageadorSchema}
         defaultProps={imageadorPadrao}
+      />
+      <Composition
+        // Roteiro Master 43 s (HUD, rastreamento e sound design):
+        // npx remotion render Roteiro43 out/roteiro43.mp4
+        id="Roteiro43"
+        component={Roteiro43}
+        durationInFrames={DURACAO_R43}
+        fps={FPS}
+        width={1080}
+        height={1920}
+        schema={r43Schema}
+        defaultProps={r43Padrao}
       />
     </>
   );
