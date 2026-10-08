@@ -96,6 +96,11 @@ npx remotion render AnuncioImageador out/imageador.mp4
 ffmpeg -i out/imageador.mp4 -c:v copy -af loudnorm=I=-14:TP=-1.5:LRA=11 -c:a aac -b:a 192k out/imageador-final.mp4
 ```
 
+A versão padrão sai **sem voz e sem trilha**, só com os efeitos sonoros das
+animações (`comVoz: false`, `comTrilha: false` em `imageadorPadrao`). Os efeitos
+saem baixos; antes de publicar, suba o ganho:
+`ffmpeg -i out/imageador.mp4 -c:v copy -af "volume=12dB,alimiter=limit=0.84:level=false" -c:a aac -b:a 192k out/imageador-sem-voz.mp4`.
+
 Para trocar a voz por outra (ex.: ElevenLabs), basta gravar um WAV por frase
 em `public/voz/fraseNN.wav`, atualizar as durações em `voz.json` e rodar
 `alinhar_legendas.py`.
