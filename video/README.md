@@ -180,6 +180,21 @@ python3 scripts/gerar_trilha_produtor.py src/ReelProdutor/linha.json public/reel
 npx remotion render ReelProdutor out/reel-produtor.mp4
 ```
 
+## Reels viral "Dia do Produtor Rural" (ReelProdutorViral)
+
+Formato de alto alcance, diferente dos demais: gancho nos 2 primeiros
+segundos ("Se você comeu hoje, agradeça a um produtor rural"), montagem com
+um corte a cada 2 tempos da batida (120 BPM) e palavras gigantes com impacto
+(zoom, tremor e clarão), "10/10" na quebra, Lei nº 2.141/2000 e autoria sobre
+as fotos do deputado, chamada "Marque um produtor rural que você admira" e
+final com a logo. Marcas de tempo em `src/ReelProdutorViral/linha.json`
+(cenas e batida).
+
+```console
+python3 scripts/gerar_trilha_viral.py src/ReelProdutorViral/linha.json public/reel-produtor/trilha-viral.wav
+npx remotion render ReelProdutorViral out/reel-produtor-viral.mp4
+```
+
 ## Docs
 
 Get started with Remotion by reading the [fundamentals page](https://www.remotion.dev/docs/the-fundamentals).

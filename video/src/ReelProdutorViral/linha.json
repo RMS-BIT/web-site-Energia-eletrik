@@ -1,0 +1,12 @@
+{
+  "fps": 30,
+  "bpm": 120,
+  "total": 585,
+  "marcas": {
+    "drop": 60,
+    "quebra": 300,
+    "drop2": 360,
+    "cta": 420,
+    "final": 480
+  }
+}
