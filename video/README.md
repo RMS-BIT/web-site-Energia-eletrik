@@ -233,17 +233,28 @@ npx remotion render ReelProdutorAutor out/reel-produtor-autor.mp4
 
 ## "49 anos da divisão de MS" em 3D (DivisaoMS3D)
 
-Mesma fala do reel DivisaoMS, reeditada em 3D: o deputado é recortado do fundo
-(Robust Video Matting, sem gerar nem alterar pessoas) e colocado sobre um mapa
-3D de MS (contornos reais, com espessura e chão quadriculado), numa estrada
-até Cuiabá (perspectiva, faixas passando, placa) e numa lavoura. Textos
-digitados com som de tecla, "49" gigante em 3D, contador de km sincronizado com
-a fala, sombra no chão e atrás dele, legendas, trilha com "ducking".
+Mesma fala do reel DivisaoMS, reeditada (v2). O vídeo original (cor natural,
+reenquadrado no rosto) conduz a fala; só nos trechos explicativos o fundo vira
+um mapa 3D real (Three.js, contornos oficiais extrudados, luz e sombra) com o
+deputado recortado no canto, como apresentador (Robust Video Matting — sem
+gerar nem alterar pessoas):
+
+- "Mato Grosso uno" → MT unido;
+- "800 quilômetros para ir a Cuiabá" → rota luminosa Dourados → Cuiabá
+  (traçado aproximado da BR-163) com contador de km;
+- "Houve essa divisão" → MS se ergue e se separa, nova divisa acende;
+- "Aqui no Sul" → câmera chega no MS (Campo Grande e Dourados).
+
+O "49" e o "PARABÉNS" ficam atrás dele (vídeo → texto → recorte com o mesmo
+enquadramento). Textos digitados letra a letra com som de tecla, legendas,
+granulação de filme, luz nas transições, trilha com "ducking" e cartão final
+com a logo. `Mapa3DTeste` mostra só o mapa (uno, rota, divisão, sul).
 
 ```console
 # bruto em public/ms/ (fora do Git)
-python scripts/recortar_pessoa.py public/ms/fala-4k-cor.mp4 rvm_mobilenetv3_fp32.onnx public/ms/fala-recorte.webm 1080
-npx remotion render DivisaoMS3D out/divisao-ms-3d.mp4
+ffmpeg -i public/ms/fala-4k.mp4 -vf "curves=master='0/0 0.18/0.13 0.5/0.49 0.82/0.87 1/1',eq=saturation=1.07,colorbalance=rm=0.02:bm=-0.015:rh=0.015:bh=-0.015,unsharp=5:5:0.35" -c:v libx264 -crf 17 -an public/ms/fala-4k-grade.mp4
+python scripts/recortar_pessoa.py public/ms/fala-4k-grade.mp4 rvm_mobilenetv3_fp32.onnx public/ms/fala-recorte.webm 1080
+npx remotion render DivisaoMS3D out/divisao-ms-3d.mp4 --gl=swangle
 ```
 
 ## Docs

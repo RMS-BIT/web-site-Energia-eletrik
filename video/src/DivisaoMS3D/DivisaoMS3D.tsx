@@ -5,7 +5,6 @@ import {
   OffthreadVideo,
   Sequence,
   interpolate,
-  random,
   spring,
   staticFile,
   useCurrentFrame,
@@ -16,907 +15,503 @@ import { clamp, ent } from "../Materia/comum";
 import {
   BLOCOS,
   BLOCOS_LEGENDA,
-  DURACAO,
   FALA_ATIVA,
   FPS,
+  PLANOS,
   paraSaida,
+  type Plano,
 } from "../DivisaoMS/edicao";
-import mapa from "../DivisaoMS/mapa.json";
+import rosto from "../DivisaoMS/rosto.json";
+import { Mapa3D, type ModoMapa3D } from "./Mapa3D";
 
-// "49 anos da divisão de MS" — versão animada em 3D.
-// O deputado é recortado do fundo (scripts/recortar_pessoa.py, máscara RVM;
-// nenhuma alteração de pessoa) e colocado sobre um mapa 3D de MS, numa
-// estrada até Cuiabá e numa lavoura em perspectiva. Textos digitados com som
-// de tecla, legendas sincronizadas, trilha baixa com "ducking".
+// "49 anos da divisão de MS" — v2.
+// O vídeo original (cor natural, reenquadrado no rosto) conduz a fala. Só nos
+// trechos em que ele EXPLICA algo o fundo dá lugar ao mapa 3D, com ele
+// recortado (máscara RVM, scripts/recortar_pessoa.py — nenhuma alteração de
+// rosto ou corpo) no canto, como apresentador:
+//   "Mato Grosso uno" · "800 km até Cuiabá" · "houve essa divisão" · "aqui no Sul".
+// O "49" e o "PARABÉNS" ficam ATRÁS dele: vídeo original → texto → recorte
+// com o mesmo enquadramento.
 // Fatos dos grafismos: LC nº 31, de 11/10/1977 (cria MS) — planalto.gov.br;
-// 1977→2026 = 49 anos. "1962" e "800 quilômetros" vêm da própria fala.
+// 1977→2026 = 49 anos. "1962" e "800 km" são da própria fala.
 
-export const DIVISAO3D_DURACAO = DURACAO;
+const o = (src: number) => paraSaida(src); // tempo da fala (s) -> quadro
+const FIM_FALA = o(78.3);
+const CARTAO = 96; // cartão final com a logo
+export const DIVISAO3D_DURACAO = FIM_FALA + CARTAO - 12;
 
 const COR = {
   marinho: "#0D355A",
   noite: "#061A2E",
-  azul: "#124A78",
   azulMedio: "#1B5F8E",
   amarelo: "#F6D54A",
-  verde: "#44B552",
   verdeClaro: "#7CCB8A",
   branco: "#FFFFFF",
 };
-const o = (src: number) => paraSaida(src); // tempo da fala (s) -> quadro de saída
 
-// cenários (quadros de saída)
-const CEN = {
-  abertura: [0, o(10.09)],
-  chegada: [o(10.82), o(18.89)],
-  estrada: [o(19.41), o(29.73)],
-  divisao: [o(29.73), o(38.05)],
-  irmaos: [o(38.05), o(42.1)],
-  agro: [o(42.1), o(56.85)],
-  sul: [o(56.85), o(62.8)],
-  final: [o(62.8), DURACAO],
-} as const;
-const UNO = o(13.36); // "ainda no Mato Grosso uno"
+const VIDEO = "ms/fala-4k-grade.mp4";
+const RECORTE = "ms/fala-recorte.webm";
 
-// ---------- utilidades ----------
-const quadros = (pts: [number, number][], f: number) =>
-  interpolate(
-    f,
-    pts.map((p) => p[0]),
-    pts.map((p) => p[1]),
-    { ...clamp, easing: (x) => 0.5 - Math.cos(Math.PI * x) / 2 },
-  );
+// ---------- enquadramento (o mesmo para o vídeo e para o recorte) ----------
+const ROSTO = rosto.rosto as [number, number, number][];
+const FPS_FONTE = rosto.fps as number;
+const rostoEm = (src: number) =>
+  ROSTO[Math.min(ROSTO.length - 1, Math.max(0, Math.round(src * FPS_FONTE)))];
 
-// ---------- orador recortado ----------
-// ponto de apoio no vídeo recortado (1080×1920): centro do corpo e linha do esfumado
-const APOIO = { x: 780, y: 1640 };
-const POSE: {
-  x: [number, number][];
-  y: [number, number][];
-  s: [number, number][];
-  vis: [number, number][];
-} = {
-  x: [
-    [0, 560],
-    [o(3.5), 600],
-    [o(7.2), 600],
-    [o(7.6), 700],
-    [CEN.chegada[0], 560],
-    [UNO, 560],
-    [UNO + 30, 560],
-    [CEN.estrada[0], 540],
-    [CEN.divisao[0], 540],
-    [o(33.86), 660],
-    [CEN.irmaos[0], 560],
-    [CEN.agro[0], 580],
-    [CEN.sul[0], 620],
-    [CEN.final[0], 560],
-    [o(75.31), 560],
-    [DURACAO, 560],
-  ],
-  y: [
-    [0, 1720],
-    [o(3.5), 1600],
-    [o(7.2), 1600],
-    [o(7.6), 1640],
-    [CEN.chegada[0], 1700],
-    [UNO - 10, 2050],
-    [UNO + 30, 1520],
-    [CEN.estrada[0] - 1, 1520],
-    [CEN.estrada[0], 1560],
-    [CEN.divisao[0], 1560],
-    [o(33.86), 1640],
-    [CEN.irmaos[0], 1760],
-    [CEN.agro[0], 1700],
-    [CEN.sul[0], 1620],
-    [CEN.final[0], 1980],
-    [o(70), 1980],
-    [o(75.31), 1640],
-    [DURACAO, 1640],
-  ],
-  s: [
-    [0, 1.02],
-    [o(3.5), 0.62],
-    [o(7.2), 0.62],
-    [o(7.6), 0.7],
-    [CEN.chegada[0], 1.0],
-    [UNO - 10, 1.3],
-    [UNO + 30, 0.66],
-    [CEN.estrada[0] - 1, 0.66],
-    [CEN.estrada[0], 0.74],
-    [CEN.divisao[0], 0.74],
-    [o(33.86), 0.62],
-    [CEN.irmaos[0], 1.0],
-    [CEN.agro[0], 0.9],
-    [CEN.sul[0], 0.68],
-    [CEN.final[0], 1.15],
-    [o(70), 1.2],
-    [o(75.31), 0.78],
-    [DURACAO, 0.8],
-  ],
-  // some no começo da divisão para o mapa ocupar a tela, volta em "Hoje tem dois estados"
-  vis: [
-    [0, 1],
-    [CEN.divisao[0], 1],
-    [CEN.divisao[0] + 12, 0],
-    [o(33.86) - 6, 0],
-    [o(33.86) + 10, 1],
-    [DURACAO - 80, 1],
-    [DURACAO - 60, 0],
-  ],
+type Quadro = { s: number; tx: number; ty: number };
+
+// nos trechos de mapa o vídeo de fundo segue como plano médio
+const BASE: Plano[] = PLANOS.map((p) =>
+  p.tipo.startsWith("mapa") ? { ...p, tipo: "medio", zoom: [1.26, 1.3] } : p,
+);
+const planoEm = (src: number) =>
+  BASE.find((p) => src >= p.de && src < p.ate) ?? BASE[BASE.length - 1];
+
+const enquadra = (src: number): Quadro => {
+  const p = planoEm(src);
+  const [z0, z1] = p.zoom ?? [1.2, 1.25];
+  const k = interpolate(src, [p.de, p.ate], [0, 1], clamp);
+  const s = z0 + (z1 - z0) * (0.5 - Math.cos(Math.PI * k) / 2);
+  const r = rostoEm(src);
+  const W = 1 / s;
+  const H = 1 / s;
+  const cx = Math.min(Math.max(r[0], W / 2), 1 - W / 2);
+  let y0 = 0;
+  if (p.tipo !== "aberto") {
+    const posRosto = p.tipo === "close" ? 0.3 : 0.25;
+    const cy = r[1] + (0.5 - posRosto) * H;
+    // nunca mostrar a faixa inferior (marca d'água do conversor no bruto)
+    y0 = Math.min(Math.max(cy - H / 2, 0), 0.92 - H);
+  }
+  return { s, tx: -(cx - W / 2) * 1080 * s, ty: -y0 * 1920 * s };
 };
 
-const Orador: React.FC<{ inicioBloco: number; inicioSaida: number }> = ({
-  inicioBloco,
-  inicioSaida,
-}) => {
-  const fl = useCurrentFrame();
-  const f = fl + inicioSaida; // quadro global
-  const x = quadros(POSE.x, f);
-  const y = quadros(POSE.y, f);
-  const s = quadros(POSE.s, f);
-  const vis = quadros(POSE.vis, f);
-  const ry = Math.sin(f / 70) * 6; // leve órbita da câmera em volta dele
-  const mascara = "linear-gradient(180deg, #000 0%, #000 74%, transparent 85%)";
+const transforma = (q: Quadro) =>
+  `translate(${q.tx}px, ${q.ty}px) scale(${q.s})`;
+
+// ---------- trechos explicativos (mapa 3D + recorte) ----------
+type Trecho = { modo: ModoMapa3D; de: number; ate: number };
+type Grupo = { de: number; ate: number; trechos: Trecho[] };
+const GRUPOS: Grupo[] = [
+  { de: 13.36, ate: 16.3, trechos: [{ modo: "uno", de: 13.36, ate: 16.3 }] },
+  {
+    de: 23.65,
+    ate: 38.05,
+    trechos: [
+      { modo: "rota", de: 23.65, ate: 29.73 },
+      { modo: "divisao", de: 29.73, ate: 38.05 },
+    ],
+  },
+  { de: 56.85, ate: 62.8, trechos: [{ modo: "sul", de: 56.85, ate: 62.8 }] },
+];
+const SAI = 16; // quadros da volta mapa -> vídeo
+
+// posição de "apresentador": rosto médio do trecho fixo no canto direito
+const canto = (g: Grupo): Quadro => {
+  let x = 0;
+  let y = 0;
+  let n = 0;
+  for (let t = g.de; t < g.ate; t += 0.2) {
+    const r = rostoEm(t);
+    x += r[0];
+    y += r[1];
+    n++;
+  }
+  const s = 0.92;
+  return { s, tx: 770 - (x / n) * 1080 * s, ty: 1190 - (y / n) * 1920 * s };
+};
+
+const mistura = (a: Quadro, b: Quadro, m: number): Quadro => ({
+  s: a.s + (b.s - a.s) * m,
+  tx: a.tx + (b.tx - a.tx) * m,
+  ty: a.ty + (b.ty - a.ty) * m,
+});
+
+// quanto do mapa está na tela no quadro global f (0..1)
+const noMapa = (f: number) => {
+  for (const g of GRUPOS) {
+    const a = o(g.de);
+    const b = o(g.ate);
+    if (f >= a && f < b)
+      return ent(f - a, 0, 12) * (1 - ent(f - a, b - a - 12, b - a));
+  }
+  return 0;
+};
+
+const FundoMapa: React.FC = () => {
+  const f = useCurrentFrame();
   return (
-    <AbsoluteFill style={{ perspective: 1600, opacity: vis }}>
-      {/* sombra no chão */}
-      <div
+    <AbsoluteFill
+      style={{
+        background:
+          `radial-gradient(ellipse 70% 45% at ${38 + Math.sin(f / 80) * 4}% 22%, rgba(120,180,240,0.28) 0%, rgba(0,0,0,0) 70%),` +
+          `radial-gradient(ellipse at 45% 40%, ${COR.azulMedio} 0%, ${COR.marinho} 48%, ${COR.noite} 100%)`,
+      }}
+    />
+  );
+};
+
+const AJUSTE: Record<ModoMapa3D, [number, number]> = {
+  uno: [-120, -90],
+  rota: [-110, -110],
+  divisao: [-110, -150],
+  sul: [-120, -120],
+};
+
+const TrechoMapa: React.FC<{ t: Trecho; dur: number; primeiro: boolean }> = ({
+  t,
+  dur,
+  primeiro,
+}) => {
+  const f = useCurrentFrame();
+  const op = primeiro ? 1 : ent(f, 0, 12);
+  const [dx, dy] = AJUSTE[t.modo];
+  const ini = o(t.de);
+  return (
+    <AbsoluteFill
+      style={{ opacity: op, transform: `translate(${dx}px, ${dy}px)` }}
+    >
+      <Mapa3D
+        modo={t.modo}
+        dur={dur}
+        divide={o(30.4) - ini}
+        rota={[o(25.4) - ini, o(28.3) - ini]}
+      />
+    </AbsoluteFill>
+  );
+};
+
+const CenaMapa: React.FC<{ g: Grupo }> = ({ g }) => {
+  const f = useCurrentFrame();
+  const dur = o(g.ate) - o(g.de);
+  const op = ent(f, 0, 12) * (1 - ent(f, dur - 12, dur));
+  return (
+    <AbsoluteFill style={{ opacity: op }}>
+      <FundoMapa />
+      {g.trechos.map((t, i) => {
+        const de = o(t.de) - o(g.de);
+        const d = o(t.ate) - o(t.de);
+        const ultimo = i === g.trechos.length - 1;
+        return (
+          <Sequence
+            key={t.modo}
+            from={de}
+            durationInFrames={d + (ultimo ? 0 : 12)}
+            name={`mapa ${t.modo}`}
+          >
+            <TrechoMapa t={t} dur={d} primeiro={i === 0} />
+          </Sequence>
+        );
+      })}
+      {/* vinheta e luz baixa para assentar o recorte */}
+      <AbsoluteFill
         style={{
-          position: "absolute",
-          left: x - 300 * s,
-          top: y - 70 * s,
-          width: 600 * s,
-          height: 120 * s,
-          borderRadius: "50%",
           background:
-            "radial-gradient(ellipse, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.25) 45%, transparent 72%)",
-          filter: "blur(6px)",
+            "radial-gradient(ellipse 120% 80% at 50% 40%, rgba(0,0,0,0) 55%, rgba(2,10,20,0.55) 100%)," +
+            "linear-gradient(180deg, rgba(0,0,0,0) 60%, rgba(3,14,26,0.55) 100%)",
         }}
       />
-      <div
-        style={{
-          position: "absolute",
-          left: x - APOIO.x * s,
-          top: y - APOIO.y * s,
-          width: 1080,
-          height: 1920,
-          transformOrigin: "0 0",
-          transform: `scale(${s})`,
-        }}
+    </AbsoluteFill>
+  );
+};
+
+// recorte do deputado: do enquadramento do vídeo até o canto e de volta
+const Apresentador: React.FC<{ g: Grupo }> = ({ g }) => {
+  const f = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const dur = o(g.ate) - o(g.de);
+  const src = g.de + f / FPS;
+  const ida = spring({
+    frame: f - 2,
+    fps,
+    config: { damping: 20, stiffness: 90 },
+  });
+  const volta = spring({
+    frame: f - (dur - SAI),
+    fps,
+    config: { damping: 22, stiffness: 120 },
+  });
+  const m = Math.min(1, ida) * (1 - Math.min(1, volta));
+  const q = mistura(enquadra(src), canto(g), m);
+  return (
+    <AbsoluteFill style={{ overflow: "hidden" }}>
+      <AbsoluteFill
+        style={{ transformOrigin: "0 0", transform: transforma(q) }}
       >
-        <div
+        <OffthreadVideo
+          src={staticFile(RECORTE)}
+          trimBefore={Math.round(g.de * FPS)}
+          transparent
+          muted
           style={{
             width: 1080,
             height: 1920,
-            transformOrigin: `${APOIO.x}px ${APOIO.y}px`,
-            transform: `rotateY(${ry}deg)`,
-            WebkitMaskImage: mascara,
-            maskImage: mascara,
-            // sombra projetada atrás dele
+            // luz de borda fria (integra o recorte à luz do mapa) + sombra
+            // projetada atrás dele; ajuste leve de cor para o ambiente azul
             filter:
-              "drop-shadow(26px 18px 22px rgba(0,0,0,0.45)) drop-shadow(0 0 1px rgba(0,0,0,0.3))",
+              `drop-shadow(0 0 ${3 * m}px rgba(150,200,255,${0.45 * m})) ` +
+              `drop-shadow(${-34 * m}px ${10 * m}px ${44 * m}px rgba(0,8,20,${0.55 * m})) ` +
+              `brightness(${1 - 0.03 * m}) contrast(${1 + 0.04 * m}) saturate(${1 - 0.06 * m})`,
           }}
-        >
-          <OffthreadVideo
-            src={staticFile("ms/fala-recorte.webm")}
-            transparent
-            muted
-            trimBefore={Math.round(inicioBloco * FPS)}
-            style={{ width: 1080, height: 1920 }}
-          />
-        </div>
+        />
+      </AbsoluteFill>
+    </AbsoluteFill>
+  );
+};
+
+// ---------- vídeo original ----------
+const Original: React.FC<{ de: number }> = ({ de }) => {
+  const f = useCurrentFrame();
+  // sob o mapa totalmente opaco não precisa decodificar o vídeo
+  if (noMapa(o(de) + f) >= 0.999) return null;
+  const q = enquadra(de + f / FPS);
+  return (
+    <AbsoluteFill style={{ overflow: "hidden" }}>
+      <AbsoluteFill
+        style={{ transformOrigin: "0 0", transform: transforma(q) }}
+      >
+        <OffthreadVideo
+          src={staticFile(VIDEO)}
+          trimBefore={Math.round(de * FPS)}
+          muted
+          style={{ width: 1080, height: 1920 }}
+        />
+      </AbsoluteFill>
+    </AbsoluteFill>
+  );
+};
+
+// recorte por cima do original, no mesmo enquadramento (texto "atrás" dele)
+const Frente: React.FC<{ de: number }> = ({ de }) => {
+  const f = useCurrentFrame();
+  return (
+    <AbsoluteFill style={{ overflow: "hidden" }}>
+      <AbsoluteFill
+        style={{
+          transformOrigin: "0 0",
+          transform: transforma(enquadra(de + f / FPS)),
+        }}
+      >
+        <OffthreadVideo
+          src={staticFile(RECORTE)}
+          trimBefore={Math.round(de * FPS)}
+          transparent
+          muted
+          style={{ width: 1080, height: 1920 }}
+        />
+      </AbsoluteFill>
+    </AbsoluteFill>
+  );
+};
+
+const Acabamento: React.FC = () => (
+  <AbsoluteFill
+    style={{
+      background:
+        "linear-gradient(180deg, rgba(3,14,26,0.32) 0%, rgba(0,0,0,0) 22%, rgba(0,0,0,0) 56%, rgba(3,14,26,0.4) 70%, rgba(3,14,26,0.5) 82%, rgba(3,14,26,0.18) 100%)," +
+        "radial-gradient(ellipse at 50% 42%, rgba(0,0,0,0) 60%, rgba(0,0,0,0.25) 100%)",
+    }}
+  />
+);
+
+// ---------- texto grande atrás dele ----------
+const Atras: React.FC<{
+  texto: string;
+  top: number;
+  tam: number;
+  espaco: number;
+  dur: number;
+  cor?: string;
+}> = ({ texto, top, tam, espaco, dur, cor = COR.amarelo }) => {
+  const f = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const s = spring({ frame: f, fps, config: { damping: 16, stiffness: 110 } });
+  const sai = 1 - ent(f, dur - 10, dur);
+  return (
+    <AbsoluteFill style={{ alignItems: "center", opacity: sai }}>
+      <div
+        style={{
+          position: "absolute",
+          top: top + (1 - s) * 90,
+          fontFamily: FONTE,
+          fontWeight: 900,
+          fontSize: tam,
+          lineHeight: 1,
+          letterSpacing: espaco,
+          color: cor,
+          opacity: Math.min(1, s * 1.4),
+          transform: `scale(${0.86 + 0.14 * s + f * 0.0006})`,
+          filter: `blur(${(1 - Math.min(1, s)) * 14}px)`,
+          textShadow: "0 18px 50px rgba(0,0,0,0.35)",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {texto}
       </div>
     </AbsoluteFill>
   );
 };
 
-// ---------- mapa 3D (piso) ----------
-type ModoMapa = "ms" | "uno" | "divisao" | "sul";
-const modoMapa = (f: number): ModoMapa =>
-  f < CEN.chegada[0]
-    ? "ms"
-    : f < CEN.estrada[0]
-      ? "uno"
-      : f < CEN.irmaos[0]
-        ? "divisao"
-        : "sul";
-
-const CAM = {
-  // altura da tela onde o mapa fica, inclinação e escala
-  top: [
-    [0, 820],
-    [UNO, 820],
-    [UNO + 40, 620],
-    [CEN.divisao[0], 380],
-    [o(33.86), 520],
-    [CEN.sul[0], 560],
-    [CEN.final[0], 700],
-  ] as [number, number][],
-  rx: [
-    [0, 58],
-    [UNO, 58],
-    [UNO + 40, 58],
-    [CEN.divisao[0], 38],
-    [o(33.86), 58],
-    [CEN.sul[0], 60],
-    [CEN.final[0], 66],
-  ] as [number, number][],
-  sc: [
-    [0, 1.05],
-    [UNO, 1.05],
-    [UNO + 40, 1.25],
-    [CEN.divisao[0], 0.95],
-    [o(33.86), 1.2],
-    [CEN.sul[0], 1.3],
-    [CEN.final[0], 1.55],
-  ] as [number, number][],
-};
-
-const MapaPiso: React.FC = () => {
-  const f = useCurrentFrame();
-  const modo = modoMapa(f);
-  const top = quadros(CAM.top, f);
-  const rx = quadros(CAM.rx, f);
-  const sc = quadros(CAM.sc, f);
-  const rz = Math.sin(f / 90) * 4;
-  // divisão: o sul se afasta e a nova fronteira acende
-  const fd = f - CEN.divisao[0];
-  const separa =
-    modo === "divisao"
-      ? interpolate(fd, [20, 70], [0, 70], {
-          ...clamp,
-          easing: (x) => 1 - (1 - x) ** 3,
-        })
-      : modo === "sul"
-        ? 70
-        : 0;
-  const linha = modo === "divisao" ? ent(fd, 12, 60) : modo === "sul" ? 1 : 0;
-  const msLuz =
-    modo === "ms" || modo === "sul"
-      ? 1
-      : modo === "divisao"
-        ? ent(fd, 60, 90)
-        : 0;
-  const mtCor =
-    modo === "uno" || (modo === "divisao" && fd < 20) ? "#2A6E9E" : "#1E5A86";
-  const pulso = 0.6 + 0.4 * Math.sin(f / 10);
-  const camadas = 10;
-  const caminhos = (escuro: boolean, k: number) => (
-    <svg
-      width={mapa.largura}
-      height={mapa.altura}
-      style={{
-        position: "absolute",
-        inset: 0,
-        transform: `translateZ(${-k * 5}px)`,
-        overflow: "visible",
-      }}
-    >
-      <path
-        d={mapa.mt}
-        fill={escuro ? "#0B3A5E" : mtCor}
-        stroke={escuro ? "none" : "rgba(255,255,255,0.5)"}
-        strokeWidth={2}
-      />
-      <g transform={`translate(${separa * 0.25}, ${separa})`}>
-        <path
-          d={mapa.ms}
-          fill={
-            escuro
-              ? "#1E6B34"
-              : modo === "uno" || (modo === "divisao" && fd < 20)
-                ? mtCor
-                : COR.verde
-          }
-          stroke={escuro ? "none" : "rgba(255,255,255,0.6)"}
-          strokeWidth={2}
-        />
-      </g>
-    </svg>
-  );
-  return (
-    <AbsoluteFill
-      style={{ perspective: 1400, perspectiveOrigin: "540px 700px" }}
-    >
-      <div
-        style={{
-          position: "absolute",
-          left: 540 - mapa.largura / 2,
-          top,
-          width: mapa.largura,
-          height: mapa.altura,
-          transformStyle: "preserve-3d",
-          transformOrigin: "50% 50%",
-          transform: `rotateX(${rx}deg) rotateZ(${rz}deg) scale(${sc})`,
-        }}
-      >
-        {/* chão quadriculado sob o mapa (dá a leitura de 3D) */}
-        <svg
-          width={2600}
-          height={2600}
-          style={{
-            position: "absolute",
-            left: mapa.largura / 2 - 1300,
-            top: mapa.altura / 2 - 1300,
-            transform: "translateZ(-70px)",
-            overflow: "visible",
-          }}
-        >
-          <defs>
-            <radialGradient id="somGrade" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#FFFFFF" stopOpacity={0.16} />
-              <stop offset="100%" stopColor="#FFFFFF" stopOpacity={0} />
-            </radialGradient>
-            <mask id="mGrade">
-              <rect width={2600} height={2600} fill="url(#somGrade)" />
-            </mask>
-          </defs>
-          <g mask="url(#mGrade)" stroke="#FFFFFF" strokeWidth={2}>
-            {Array.from({ length: 27 }).map((_, i) => (
-              <line key={`gv${i}`} x1={i * 100} y1={0} x2={i * 100} y2={2600} />
-            ))}
-            {Array.from({ length: 27 }).map((_, i) => (
-              <line key={`gh${i}`} x1={0} y1={i * 100} x2={2600} y2={i * 100} />
-            ))}
-          </g>
-        </svg>
-        {Array.from({ length: camadas }).map((_, k) => (
-          <div
-            key={k}
-            style={{
-              position: "absolute",
-              inset: 0,
-              transformStyle: "preserve-3d",
-            }}
-          >
-            {caminhos(true, camadas - k)}
-          </div>
-        ))}
-        <div style={{ position: "absolute", inset: 0 }}>
-          {caminhos(false, 0)}
-        </div>
-        {/* brilho do MS e nova fronteira */}
-        <svg
-          width={mapa.largura}
-          height={mapa.altura}
-          style={{ position: "absolute", inset: 0, overflow: "visible" }}
-        >
-          <g transform={`translate(${separa * 0.25}, ${separa})`}>
-            <path
-              d={mapa.ms}
-              fill={COR.verdeClaro}
-              opacity={0.35 * msLuz * pulso}
-            />
-            <path
-              d={mapa.ms}
-              fill="none"
-              stroke={COR.amarelo}
-              strokeWidth={5}
-              opacity={msLuz}
-              style={{ filter: "drop-shadow(0 0 10px rgba(246,213,74,0.9))" }}
-            />
-            <path
-              d={mapa.ms}
-              fill="none"
-              stroke={COR.amarelo}
-              strokeWidth={6}
-              pathLength={1}
-              strokeDasharray={1}
-              strokeDashoffset={1 - linha}
-            />
-          </g>
-          <circle
-            cx={mapa.cuiaba[0]}
-            cy={mapa.cuiaba[1]}
-            r={10}
-            fill={COR.amarelo}
-            opacity={modo === "uno" ? ent(f, UNO + 20, UNO + 34) : 0}
-          />
-        </svg>
-      </div>
-    </AbsoluteFill>
-  );
-};
-
-// fundo de palco: azul profundo, luz de cima e partículas
-const Palco: React.FC = () => {
-  const f = useCurrentFrame();
-  return (
-    <AbsoluteFill
-      style={{
-        background: `radial-gradient(ellipse at 50% 30%, ${COR.azulMedio} 0%, ${COR.marinho} 45%, ${COR.noite} 100%)`,
-      }}
-    >
-      <AbsoluteFill
-        style={{
-          background:
-            "radial-gradient(ellipse at 50% 0%, rgba(255,240,200,0.28) 0%, transparent 45%)",
-        }}
-      />
-      {Array.from({ length: 30 }).map((_, i) => {
-        const x = random(`px${i}`) * 1080;
-        const y =
-          (((random(`py${i}`) * 1920 - f * (0.3 + random(`pv${i}`) * 0.6)) %
-            1920) +
-            1920) %
-          1920;
-        return (
-          <div
-            key={i}
-            style={{
-              position: "absolute",
-              left: x,
-              top: y,
-              width: 4,
-              height: 4,
-              borderRadius: 2,
-              background: "#FFF",
-              opacity: 0.1 + random(`po${i}`) * 0.25,
-            }}
-          />
-        );
-      })}
-    </AbsoluteFill>
-  );
-};
-
-// ---------- estrada em perspectiva até Cuiabá ----------
-const HORIZONTE = 880;
-const projeta = (xMundo: number, z: number) => ({
-  x: 540 + (xMundo * 900) / z,
-  y: HORIZONTE + 1100 / z,
-});
-
-const Estrada: React.FC = () => {
-  const f = useCurrentFrame();
-  const t = f / 30;
-  const andou = t * 9; // velocidade
-  const faixas = Array.from({ length: 22 }).map((_, i) => {
-    const zz = ((i * 3.2 - (andou % 3.2) + 70) % 70) + 1.2;
-    return zz;
-  });
-  const quad = (x1: number, x2: number, z1: number, z2: number) => {
-    const a = projeta(x1, z1);
-    const b = projeta(x2, z1);
-    const c = projeta(x2, z2);
-    const d = projeta(x1, z2);
-    return `M${a.x},${a.y} L${b.x},${b.y} L${c.x},${c.y} L${d.x},${d.y} Z`;
-  };
-  // placa "CUIABÁ" se aproximando
-  const zPlaca = interpolate(f, [o(26.8), o(29.73)], [40, 5.5], clamp);
-  const placa = projeta(2.0, zPlaca);
-  const esc = 1 / zPlaca;
-  return (
-    <AbsoluteFill>
-      <AbsoluteFill
-        style={{
-          background:
-            "linear-gradient(180deg, #0B2A4A 0%, #3E5F8C 30%, #F2A65A 44%, #FFD58A 46%, #F7B267 47%)",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          left: 540 - 220,
-          top: HORIZONTE - 260,
-          width: 440,
-          height: 440,
-          borderRadius: "50%",
-          background:
-            "radial-gradient(circle, rgba(255,236,170,0.95) 0%, rgba(255,190,90,0.35) 40%, transparent 70%)",
-        }}
-      />
-      <svg
-        width={1080}
-        height={1920}
-        style={{ position: "absolute", inset: 0 }}
-      >
-        <defs>
-          <linearGradient id="campo" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#5E7F3A" />
-            <stop offset="100%" stopColor="#2D4F1E" />
-          </linearGradient>
-          <linearGradient id="asfalto" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#4A4A50" />
-            <stop offset="100%" stopColor="#1C1C22" />
-          </linearGradient>
-        </defs>
-        <rect
-          x={0}
-          y={HORIZONTE}
-          width={1080}
-          height={1920 - HORIZONTE}
-          fill="url(#campo)"
-        />
-        <path d={quad(-1.4, 1.4, 1.0, 80)} fill="url(#asfalto)" />
-        <path d={quad(-1.4, -1.3, 1.0, 80)} fill="#E8E8E8" opacity={0.85} />
-        <path d={quad(1.3, 1.4, 1.0, 80)} fill="#E8E8E8" opacity={0.85} />
-        {faixas.map((zz, i) => (
-          <g key={i} opacity={Math.min(1, (70 - zz) / 20)}>
-            <path d={quad(-0.05, 0.05, zz, zz + 1.4)} fill={COR.amarelo} />
-            {/* faixas laterais tracejadas (dão a sensação de movimento) */}
-            <path d={quad(-0.78, -0.7, zz + 0.8, zz + 2.0)} fill="#F2F2F2" />
-            <path d={quad(0.7, 0.78, zz + 0.8, zz + 2.0)} fill="#F2F2F2" />
-            {/* balizadores no acostamento */}
-            {i % 2 === 0 ? (
-              <>
-                <path d={quad(-1.75, -1.68, zz, zz + 0.15)} fill="#FFFFFF" />
-                <path d={quad(1.68, 1.75, zz, zz + 0.15)} fill="#FFFFFF" />
-              </>
-            ) : null}
-          </g>
-        ))}
-        {/* placa */}
-        {zPlaca < 39.5 ? (
-          <g transform={`translate(${placa.x}, ${placa.y - 700 * esc})`}>
-            <rect
-              x={-6 * esc * 10}
-              y={0}
-              width={12 * esc * 10}
-              height={700 * esc}
-              fill="#9AA"
-            />
-            <rect
-              x={-260 * esc * 3}
-              y={-170 * esc * 3}
-              width={520 * esc * 3}
-              height={190 * esc * 3}
-              rx={14 * esc * 3}
-              fill="#0E6B3A"
-              stroke="#FFF"
-              strokeWidth={6 * esc * 3}
-            />
-            <text
-              x={0}
-              y={-60 * esc * 3}
-              textAnchor="middle"
-              fill="#FFF"
-              fontFamily={FONTE}
-              fontWeight={800}
-              fontSize={86 * esc * 3}
-            >
-              CUIABÁ ↑
-            </text>
-          </g>
-        ) : null}
-      </svg>
-      <AbsoluteFill
-        style={{
-          background:
-            "radial-gradient(ellipse at 50% 60%, transparent 55%, rgba(0,0,0,0.45) 100%)",
-        }}
-      />
-    </AbsoluteFill>
-  );
-};
-
-// ---------- lavoura em perspectiva ----------
-const Lavoura: React.FC = () => {
-  const f = useCurrentFrame();
-  const andou = (f / 30) * 4;
-  const fileiras = 26;
-  return (
-    <AbsoluteFill>
-      <AbsoluteFill
-        style={{
-          background:
-            "linear-gradient(180deg, #2E78C7 0%, #8EC5F0 36%, #E7F3D8 45%)",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          left: 700,
-          top: 160,
-          width: 380,
-          height: 380,
-          borderRadius: "50%",
-          background:
-            "radial-gradient(circle, rgba(255,250,210,0.95) 0%, rgba(255,230,140,0.4) 40%, transparent 70%)",
-        }}
-      />
-      <svg
-        width={1080}
-        height={1920}
-        style={{ position: "absolute", inset: 0 }}
-      >
-        <rect
-          x={0}
-          y={HORIZONTE}
-          width={1080}
-          height={1920 - HORIZONTE}
-          fill="#6B4A2A"
-        />
-        {Array.from({ length: fileiras }).map((_, i) => {
-          const x1 = -6 + (i * 12) / fileiras;
-          const x2 = x1 + 0.22;
-          const a = projeta(x1, 80);
-          const b = projeta(x2, 80);
-          const c = projeta(x2, 0.9);
-          const d = projeta(x1, 0.9);
-          return (
-            <path
-              key={i}
-              d={`M${a.x},${a.y} L${b.x},${b.y} L${c.x},${c.y} L${d.x},${d.y} Z`}
-              fill={i % 2 ? "#3F8F2F" : "#4FA63A"}
-            />
-          );
-        })}
-        {/* faixas de luz passando (sensação de movimento) */}
-        {Array.from({ length: 10 }).map((_, i) => {
-          const zz = ((i * 8 - (andou % 8) + 80) % 80) + 1;
-          const a = projeta(-6, zz);
-          const b = projeta(6, zz + 0.6);
-          return (
-            <rect
-              key={i}
-              x={0}
-              y={a.y}
-              width={1080}
-              height={Math.max(1, b.y - a.y)}
-              fill="#FFF"
-              opacity={0.06}
-            />
-          );
-        })}
-      </svg>
-      <AbsoluteFill
-        style={{
-          background:
-            "radial-gradient(ellipse at 50% 60%, transparent 55%, rgba(0,0,0,0.35) 100%)",
-        }}
-      />
-    </AbsoluteFill>
-  );
-};
-
-// ---------- texto digitado (com relevo 3D) ----------
+// ---------- texto digitado (letra a letra, com som de tecla) ----------
 type Digitado = {
   de: number;
+  ate: number;
   texto: string;
   y: number;
   tam: number;
   cor?: string;
-  cps?: number;
-  ate?: number;
-  destaque?: boolean;
+  esq?: boolean; // alinhado à esquerda (cenas de mapa)
+  sublinha?: boolean;
 };
-const DIGITADOS: Digitado[] = [
-  {
-    de: o(3.79),
-    texto: "11 DE OUTUBRO",
-    y: 250,
-    tam: 84,
-    cor: COR.amarelo,
-    ate: o(7.2),
-  },
-  {
-    de: o(7.6) + 10,
-    texto: "ANOS DA DIVISÃO",
-    y: 560,
-    tam: 58,
-    ate: CEN.abertura[1],
-  },
-  {
-    de: o(12.6),
-    texto: "1962",
-    y: 260,
-    tam: 150,
-    cor: COR.amarelo,
-    ate: UNO + 6,
-  },
-  {
-    de: UNO + 14,
-    texto: "MATO GROSSO UNO",
-    y: 250,
-    tam: 76,
-    ate: CEN.chegada[1],
-  },
-  { de: o(19.7), texto: "O SONHO DA DIVISÃO", y: 250, tam: 66, ate: o(23.6) },
-  { de: o(27.8), texto: "ATÉ CUIABÁ", y: 470, tam: 58, ate: CEN.estrada[1] },
-  {
-    de: CEN.divisao[0] + 6,
-    texto: "11/10/1977",
-    y: 220,
-    tam: 64,
-    cor: COR.amarelo,
-    ate: o(33.86),
-  },
-  {
-    de: CEN.divisao[0] + 26,
-    texto: "LEI COMPLEMENTAR Nº 31",
-    y: 310,
-    tam: 50,
-    ate: o(33.86),
-  },
-  {
-    de: CEN.divisao[0] + 62,
-    texto: "MATO GROSSO",
-    y: 640,
-    tam: 48,
-    ate: o(33.86),
-  },
-  {
-    de: CEN.divisao[0] + 80,
-    texto: "MATO GROSSO DO SUL",
-    y: 1120,
-    tam: 48,
-    cor: COR.amarelo,
-    ate: o(33.86),
-  },
-  {
-    de: DURACAO - 52,
-    texto: "49 ANOS · 11 DE OUTUBRO",
-    y: 1110,
-    tam: 54,
-    cor: COR.amarelo,
-  },
-  { de: o(34.3), texto: "DOIS ESTADOS", y: 250, tam: 80, ate: CEN.divisao[1] },
-  {
-    de: o(38.3),
-    texto: "DOIS IRMÃOS",
-    y: 250,
-    tam: 90,
-    cor: COR.amarelo,
-    ate: CEN.irmaos[1],
-  },
-  {
-    de: o(46.6),
-    texto: "AGRONEGÓCIO",
-    y: 250,
-    tam: 92,
-    cor: COR.amarelo,
-    ate: o(48.2),
-  },
-  { de: o(48.3), texto: "TERRAS FÉRTEIS", y: 250, tam: 86, ate: o(53.5) },
-  {
-    de: o(57.2),
-    texto: "AQUI NO SUL",
-    y: 250,
-    tam: 90,
-    cor: COR.amarelo,
-    ate: CEN.sul[1],
-  },
-  {
-    de: o(63.2),
-    texto: "PARABÉNS,",
-    y: 230,
-    tam: 96,
-    cor: COR.amarelo,
-    ate: DURACAO - 70,
-  },
-  {
-    de: o(63.2) + 14,
-    texto: "MATO GROSSO DO SUL",
-    y: 340,
-    tam: 70,
-    ate: DURACAO - 70,
-  },
-  {
-    de: o(75.4),
-    texto: "DIAS MELHORES",
-    y: 470,
-    tam: 62,
-    cor: COR.verdeClaro,
-    ate: DURACAO - 70,
-  },
-];
 const CPS = 0.55; // caracteres por quadro (~16 por segundo)
 
-const relevo = (cor: string, n: number) =>
-  Array.from({ length: n }, (_, k) => `0 ${k + 1}px 0 ${cor}`).join(", ") +
-  ", 0 14px 26px rgba(0,0,0,0.55)";
+const DIGITADOS: Digitado[] = [
+  { de: o(3.79), ate: o(5.6), texto: "11 DE OUTUBRO", y: 200, tam: 88, cor: COR.amarelo, sublinha: true },
+  { de: o(12.25), ate: o(13.36) + 6, texto: "1962", y: 190, tam: 170, cor: COR.amarelo },
+  { de: o(13.36) + 14, ate: o(16.3) - 4, texto: "ANTES DA DIVISÃO", y: 150, tam: 62, esq: true },
+  { de: o(19.7), ate: o(23.6), texto: "O SONHO DA DIVISÃO", y: 200, tam: 72, sublinha: true },
+  { de: o(27.7), ate: o(29.73), texto: "ATÉ CUIABÁ", y: 330, tam: 56, esq: true, cor: COR.amarelo },
+  { de: o(29.73) + 10, ate: o(33.86), texto: "11/10/1977", y: 150, tam: 84, esq: true, cor: COR.amarelo },
+  { de: o(29.73) + 30, ate: o(33.86), texto: "LEI COMPLEMENTAR Nº 31", y: 250, tam: 44, esq: true },
+  { de: o(34.0), ate: o(38.05) - 4, texto: "DOIS ESTADOS", y: 150, tam: 84, esq: true, sublinha: true },
+  { de: o(38.3), ate: o(42.0), texto: "DOIS IRMÃOS", y: 200, tam: 96, cor: COR.amarelo, sublinha: true },
+  { de: o(46.6), ate: o(48.0), texto: "AGRONEGÓCIO", y: 200, tam: 96, cor: COR.amarelo },
+  { de: o(48.3), ate: o(53.6), texto: "TERRAS FÉRTEIS", y: 200, tam: 90, sublinha: true },
+  { de: o(57.1), ate: o(62.8) - 4, texto: "AQUI NO SUL", y: 150, tam: 92, esq: true, cor: COR.amarelo, sublinha: true },
+  { de: o(63.11), ate: o(68.7), texto: "MATO GROSSO DO SUL", y: 175, tam: 62 },
+  { de: o(75.4), ate: FIM_FALA, texto: "DIAS MELHORES", y: 200, tam: 90, cor: COR.verdeClaro, sublinha: true },
+];
 
 const TextoDigitado: React.FC<{ d: Digitado }> = ({ d }) => {
   const f = useCurrentFrame();
-  const n = Math.min(d.texto.length, Math.floor(f * (d.cps ?? CPS)) + 1);
-  const fim = (d.ate ?? 1e9) - d.de;
-  const sai = 1 - ent(f, fim - 10, fim);
-  const digitou = Math.ceil(d.texto.length / (d.cps ?? CPS));
+  const fim = d.ate - d.de;
+  const digitou = Math.ceil(d.texto.length / CPS);
+  const sai = ent(f, fim - 10, fim);
   const cursor =
-    n < d.texto.length || (f < digitou + 24 && Math.floor(f / 8) % 2 === 0);
-  const giro = Math.sin((f + d.de) / 50) * 8;
+    f < digitou + 18 &&
+    f < fim - 12 &&
+    (f < digitou || Math.floor(f / 8) % 2 === 0);
+  const linha = d.sublinha ? ent(f, digitou + 2, digitou + 18) * (1 - sai) : 0;
   return (
     <AbsoluteFill
-      style={{ perspective: 1000, alignItems: "center", opacity: sai }}
+      style={{
+        alignItems: d.esq ? "flex-start" : "center",
+        paddingLeft: d.esq ? 70 : 0,
+        opacity: 1 - sai,
+        transform: `translateY(${-sai * 18}px)`,
+        filter: `blur(${sai * 8}px)`,
+      }}
     >
-      <div
-        style={{
-          position: "absolute",
-          top: d.y,
-          fontFamily: FONTE,
-          fontWeight: 900,
-          fontSize: d.tam,
-          letterSpacing: -1,
-          color: d.cor ?? COR.branco,
-          textShadow: relevo(
-            d.cor === COR.amarelo ? "#9C7A12" : "#5E6E80",
-            Math.round(d.tam / 12),
-          ),
-          transform: `rotateY(${giro}deg) rotateX(8deg)`,
-          whiteSpace: "nowrap",
-        }}
-      >
-        {d.texto.slice(0, n)}
-        <span
+      <div style={{ position: "absolute", top: d.y }}>
+        <div
           style={{
-            opacity: cursor && n <= d.texto.length && f < fim - 14 ? 1 : 0,
-            color: COR.amarelo,
-            marginLeft: 4,
+            fontFamily: FONTE,
+            fontWeight: 800,
+            fontSize: d.tam,
+            lineHeight: 1.05,
+            letterSpacing: d.tam > 120 ? -4 : 1,
+            color: d.cor ?? COR.branco,
+            whiteSpace: "nowrap",
+            textShadow:
+              "0 6px 28px rgba(0,0,0,0.45), 0 2px 6px rgba(0,0,0,0.3)",
           }}
         >
-          |
-        </span>
+          {d.texto.split("").map((ch, j) => {
+            const t = f - j / CPS;
+            if (t < 0) return null;
+            const p = ent(t, 0, 5);
+            return (
+              <span
+                key={j}
+                style={{
+                  display: "inline-block",
+                  whiteSpace: "pre",
+                  opacity: p,
+                  transform: `translateY(${(1 - p) * 16}px)`,
+                  filter: `blur(${(1 - p) * 6}px)`,
+                }}
+              >
+                {ch}
+              </span>
+            );
+          })}
+          <span
+            style={{
+              display: "inline-block",
+              width: Math.max(4, d.tam * 0.06),
+              height: d.tam * 0.82,
+              marginLeft: d.tam * 0.08,
+              background: COR.amarelo,
+              verticalAlign: "-0.06em",
+              opacity: cursor ? 1 : 0,
+            }}
+          />
+        </div>
+        <div
+          style={{
+            height: Math.max(5, d.tam * 0.07),
+            marginTop: d.tam * 0.12,
+            width: `${linha * 100}%`,
+            marginLeft: d.esq ? 0 : `${(1 - linha) * 50}%`,
+            background: d.cor === COR.amarelo ? COR.branco : COR.amarelo,
+            borderRadius: 4,
+            boxShadow: "0 4px 16px rgba(0,0,0,0.35)",
+          }}
+        />
       </div>
     </AbsoluteFill>
   );
 };
 
-// "49" gigante em 3D atrás dele
-const Grande49: React.FC = () => {
+// contador de km, preso ao desenho da rota (Dourados -> Cuiabá)
+const Contador: React.FC<{ de: number; ate: number; fim: number }> = ({
+  de,
+  ate,
+  fim,
+}) => {
   const f = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const s = spring({ frame: f, fps, config: { damping: 12, stiffness: 90 } });
-  const sai =
-    1 - ent(f, CEN.abertura[1] - o(7.6) - 12, CEN.abertura[1] - o(7.6));
+  if (f < de - 10 || f > fim) return null;
+  const k = interpolate(f, [de, ate], [0, 1], {
+    ...clamp,
+    easing: (x) => 0.5 - Math.cos(Math.PI * x) / 2,
+  });
+  const v = Math.round(800 * k);
+  const entra = ent(f, de - 8, de + 4);
+  const sai = ent(f, fim - 10, fim);
+  const pulso = f >= ate ? 1 + 0.06 * Math.max(0, 1 - (f - ate) / 8) : 1;
   return (
     <AbsoluteFill
-      style={{ perspective: 1200, alignItems: "center", opacity: sai }}
+      style={{
+        paddingLeft: 70,
+        opacity: entra * (1 - sai),
+        filter: `blur(${sai * 8}px)`,
+      }}
     >
       <div
         style={{
           position: "absolute",
-          top: 520,
-          left: 60,
+          top: 140,
           fontFamily: FONTE,
           fontWeight: 900,
-          fontSize: 560,
+          fontSize: 176,
           lineHeight: 1,
-          letterSpacing: -30,
-          color: COR.amarelo,
-          textShadow: relevo("#8E6E0E", 24),
-          transform: `translateZ(${interpolate(s, [0, 1], [-800, 0])}px) rotateY(${18 + Math.sin(f / 30) * 5}deg) rotateX(10deg)`,
-          opacity: Math.min(1, s * 1.5),
-        }}
-      >
-        49
-      </div>
-    </AbsoluteFill>
-  );
-};
-
-// contador de quilômetros (sincronizado com "800 quilômetros" da fala)
-const Contador: React.FC = () => {
-  const f = useCurrentFrame();
-  const v = Math.round(
-    interpolate(f, [0, 34], [0, 800], {
-      ...clamp,
-      easing: (x) => 1 - (1 - x) ** 3,
-    }),
-  );
-  const sai =
-    1 - ent(f, CEN.estrada[1] - o(25.3) - 12, CEN.estrada[1] - o(25.3));
-  return (
-    <AbsoluteFill
-      style={{ perspective: 1000, alignItems: "center", opacity: sai }}
-    >
-      <div
-        style={{
-          position: "absolute",
-          top: 240,
-          fontFamily: FONTE,
-          fontWeight: 900,
-          fontSize: 190,
-          color: COR.branco,
           letterSpacing: -6,
+          color: COR.branco,
           fontVariantNumeric: "tabular-nums",
-          textShadow: relevo("#5E6E80", 14),
-          transform: `rotateX(10deg) scale(${1 + Math.max(0, 1 - f / 10) * 0.2})`,
+          textShadow: "0 8px 34px rgba(0,0,0,0.5)",
+          transform: `scale(${pulso})`,
+          transformOrigin: "0 50%",
         }}
       >
         {v}
-        <span style={{ fontSize: 90, color: COR.amarelo, marginLeft: 18 }}>
+        <span
+          style={{
+            fontSize: 76,
+            color: COR.amarelo,
+            marginLeft: 16,
+            letterSpacing: 2,
+          }}
+        >
           KM
         </span>
       </div>
@@ -928,9 +523,10 @@ const Contador: React.FC = () => {
 const Legendas: React.FC = () => {
   const f = useCurrentFrame();
   const b = BLOCOS_LEGENDA.find((x) => f >= x.de && f < x.ate);
-  if (!b) return null;
+  if (!b || f >= FIM_FALA - 6) return null;
   const entra = ent(f - b.de, 0, 6);
   const sai = interpolate(f, [b.ate - 4, b.ate], [1, 0], clamp);
+  const mapa = noMapa(f) > 0.5;
   const cor = {
     branco: COR.branco,
     amarelo: COR.amarelo,
@@ -939,22 +535,23 @@ const Legendas: React.FC = () => {
   return (
     <AbsoluteFill
       style={{
-        alignItems: "center",
-        paddingTop: 1330,
-        paddingLeft: 70,
-        paddingRight: 70,
+        alignItems: mapa ? "flex-start" : "center",
+        paddingTop: mapa ? 1300 : 1330,
+        paddingLeft: mapa ? 56 : 70,
+        paddingRight: mapa ? 0 : 70,
       }}
     >
       <div
         style={{
           fontFamily: FONTE,
           fontWeight: 800,
-          fontSize: 54,
-          lineHeight: 1.16,
-          textAlign: "center",
-          padding: "12px 26px",
+          fontSize: mapa ? 46 : 54,
+          lineHeight: 1.18,
+          textAlign: mapa ? "left" : "center",
+          maxWidth: mapa ? 470 : undefined,
+          padding: mapa ? "12px 20px" : "12px 26px",
           borderRadius: 18,
-          background: "rgba(4,16,30,0.55)",
+          background: "rgba(4,16,30,0.6)",
           opacity: entra * sai,
           transform: `translateY(${(1 - entra) * 14}px)`,
           textShadow: "0 3px 10px rgba(0,0,0,0.5)",
@@ -971,60 +568,142 @@ const Legendas: React.FC = () => {
   );
 };
 
-// ---------- final: logo ----------
+// ---------- acabamento cinematográfico ----------
+// granulação de filme (SVG, a semente muda a cada quadro)
+const Grao: React.FC = () => {
+  const f = useCurrentFrame();
+  return (
+    <AbsoluteFill
+      style={{ mixBlendMode: "overlay", opacity: 0.16, pointerEvents: "none" }}
+    >
+      <svg width={1080} height={1920}>
+        <filter id="grao">
+          <feTurbulence
+            type="fractalNoise"
+            baseFrequency="0.85"
+            numOctaves={2}
+            seed={f % 12}
+          />
+          <feColorMatrix type="saturate" values="0" />
+        </filter>
+        <rect width={1080} height={1920} filter="url(#grao)" />
+      </svg>
+    </AbsoluteFill>
+  );
+};
+
+// luz quente atravessando o quadro nas trocas vídeo <-> mapa
+const Vazamento: React.FC<{ lado: 1 | -1 }> = ({ lado }) => {
+  const f = useCurrentFrame();
+  const p = interpolate(f, [0, 22], [0, 1], clamp);
+  const x = lado > 0 ? -20 + p * 140 : 120 - p * 140;
+  const a = Math.sin(p * Math.PI);
+  return (
+    <AbsoluteFill
+      style={{
+        mixBlendMode: "screen",
+        opacity: a * 0.75,
+        background:
+          `radial-gradient(ellipse 45% 70% at ${x}% 35%, rgba(255,190,110,0.85) 0%, rgba(255,120,40,0.35) 40%, rgba(0,0,0,0) 75%),` +
+          `radial-gradient(ellipse 30% 40% at ${x + 18 * lado}% 70%, rgba(255,230,170,0.5) 0%, rgba(0,0,0,0) 70%)`,
+      }}
+    />
+  );
+};
+
+// ---------- cartão final ----------
 const LOGO = "ms/logo-ze.png";
-const Logo: React.FC = () => {
+const Cartao: React.FC = () => {
   const f = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const s = spring({ frame: f, fps, config: { damping: 13, stiffness: 80 } });
-  const W = 820;
+  const fundo = ent(f, 0, 14);
+  const s = spring({
+    frame: f - 8,
+    fps,
+    config: { damping: 14, stiffness: 80 },
+  });
+  const brilho = interpolate(f, [26, 56], [-30, 130], clamp);
+  const W = 860;
+  const H = Math.round((W * 474) / 844);
   return (
-    <AbsoluteFill style={{ perspective: 1200, alignItems: "center" }}>
-      <div
+    <AbsoluteFill>
+      <AbsoluteFill
         style={{
-          position: "absolute",
-          top: 560,
-          opacity: Math.min(1, s * 1.5),
-          transform: `translateZ(${interpolate(s, [0, 1], [-700, 0])}px) rotateY(${(1 - s) * -40 + Math.sin(f / 30) * 5}deg)`,
-          filter: "drop-shadow(0 26px 40px rgba(0,0,0,0.5))",
+          opacity: fundo,
+          background: `radial-gradient(ellipse at 50% 40%, ${COR.azulMedio} 0%, ${COR.marinho} 52%, ${COR.noite} 100%)`,
         }}
-      >
-        <Img
-          src={staticFile(LOGO)}
-          style={{ width: W, height: Math.round((W * 474) / 844) }}
-        />
-      </div>
+      />
+      <AbsoluteFill style={{ perspective: 1400, alignItems: "center" }}>
+        <div
+          style={{
+            position: "absolute",
+            top: 620,
+            width: W,
+            height: H,
+            opacity: Math.min(1, s * 1.4),
+            transform: `translateZ(${interpolate(s, [0, 1], [-600, 0])}px) rotateY(${(1 - s) * -28 + Math.sin(f / 34) * 3}deg) rotateX(${(1 - s) * 10}deg)`,
+            filter: "drop-shadow(0 34px 50px rgba(0,0,0,0.5))",
+          }}
+        >
+          <Img src={staticFile(LOGO)} style={{ width: W, height: H }} />
+          {/* reflexo de luz passando pela logo */}
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              mixBlendMode: "soft-light",
+              background: `linear-gradient(105deg, rgba(255,255,255,0) ${brilho - 18}%, rgba(255,255,255,0.9) ${brilho}%, rgba(255,255,255,0) ${brilho + 18}%)`,
+              WebkitMaskImage: `url(${staticFile(LOGO)})`,
+              WebkitMaskSize: "100% 100%",
+            }}
+          />
+        </div>
+        <div
+          style={{
+            position: "absolute",
+            top: 620 + H + 70,
+            fontFamily: FONTE,
+            fontWeight: 800,
+            fontSize: 50,
+            letterSpacing: 6,
+            color: COR.amarelo,
+            opacity: ent(f, 30, 46),
+            transform: `translateY(${(1 - ent(f, 30, 46)) * 20}px)`,
+            textShadow: "0 4px 18px rgba(0,0,0,0.4)",
+          }}
+        >
+          49 ANOS · 11 DE OUTUBRO
+        </div>
+        <div
+          style={{
+            position: "absolute",
+            top: 620 + H + 140,
+            fontFamily: FONTE,
+            fontWeight: 600,
+            fontSize: 38,
+            letterSpacing: 10,
+            color: COR.branco,
+            opacity: ent(f, 40, 56),
+          }}
+        >
+          MATO GROSSO DO SUL
+        </div>
+      </AbsoluteFill>
     </AbsoluteFill>
   );
 };
 
 // ---------- montagem ----------
-
-const Cenario: React.FC = () => {
-  const f = useCurrentFrame();
-  // fusão de 10 quadros nas trocas de cenário
-  const op = (de: number, ate: number) =>
-    ent(f, de, de + 10) * (1 - ent(f, ate - 2, ate + 8));
-  return (
-    <AbsoluteFill>
-      <Palco />
-      <MapaPiso />
-      <AbsoluteFill style={{ opacity: op(CEN.estrada[0], CEN.estrada[1]) }}>
-        {f >= CEN.estrada[0] - 2 && f < CEN.estrada[1] + 10 ? (
-          <Estrada />
-        ) : null}
-      </AbsoluteFill>
-      <AbsoluteFill style={{ opacity: op(CEN.agro[0], CEN.agro[1]) }}>
-        {f >= CEN.agro[0] - 2 && f < CEN.agro[1] + 10 ? <Lavoura /> : null}
-      </AbsoluteFill>
-    </AbsoluteFill>
-  );
-};
-
 const TECLAS = ["audio/tecla1.wav", "audio/tecla2.wav", "audio/tecla3.wav"];
+const ROTA = { de: o(25.4), ate: o(28.3), fim: o(29.73) };
+const QUARENTA_NOVE = { de: o(7.39), ate: o(10.09) };
+const PARABENS = { de: o(63.11), ate: o(68.7) };
+const TRILHA = 2304; // 76,8 s
 
 export const DivisaoMS3D: React.FC = () => {
+  const total = DIVISAO3D_DURACAO;
   const trilha = (f: number) => {
+    if (f > FIM_FALA) return 0.34;
     let dist = 999;
     for (const [a, b] of FALA_ATIVA) {
       if (f >= a - 4 && f <= b + 4) {
@@ -1033,52 +712,97 @@ export const DivisaoMS3D: React.FC = () => {
       }
       dist = Math.min(dist, Math.abs(f - a), Math.abs(f - b));
     }
-    const base = interpolate(dist, [0, 12], [0.14, 0.26], clamp);
-    return (
-      base * interpolate(f, [0, 30, DURACAO - 50, DURACAO], [0, 1, 1, 0], clamp)
-    );
+    return interpolate(dist, [0, 12], [0.13, 0.24], clamp);
   };
+  const transicoes = GRUPOS.flatMap((g) => [
+    { q: o(g.de), lado: 1 as const },
+    { q: o(g.ate) - SAI, lado: -1 as const },
+  ]);
   return (
     <AbsoluteFill style={{ backgroundColor: COR.noite }}>
-      <Cenario />
-      <Sequence
-        from={o(7.6)}
-        durationInFrames={CEN.abertura[1] - o(7.6)}
-        name="49 gigante"
-      >
-        <Grande49 />
-      </Sequence>
+      {/* 1. vídeo original */}
       {BLOCOS.map(([a, b]) => (
         <Sequence
-          key={`p${a}`}
+          key={`o${a}`}
           from={o(a)}
           durationInFrames={Math.round((b - a) * FPS)}
-          name={`orador ${a}`}
+          name={`original ${a}`}
         >
-          <Orador inicioBloco={a} inicioSaida={o(a)} />
+          <Original de={a} />
         </Sequence>
       ))}
+      <Acabamento />
+
+      {/* 2. textos atrás dele + recorte por cima */}
       <Sequence
-        from={o(25.3)}
-        durationInFrames={CEN.estrada[1] - o(25.3)}
-        name="contador km"
+        from={QUARENTA_NOVE.de}
+        durationInFrames={QUARENTA_NOVE.ate - QUARENTA_NOVE.de}
+        name="49 atrás"
       >
-        <Contador />
+        <Atras
+          texto="49"
+          top={120}
+          tam={500}
+          espaco={40}
+          dur={QUARENTA_NOVE.ate - QUARENTA_NOVE.de}
+        />
+        <Frente de={7.39} />
       </Sequence>
+      <Sequence
+        from={PARABENS.de}
+        durationInFrames={PARABENS.ate - PARABENS.de}
+        name="parabéns atrás"
+      >
+        <Atras
+          texto="PARABÉNS"
+          top={265}
+          tam={190}
+          espaco={-4}
+          dur={PARABENS.ate - PARABENS.de}
+          cor={COR.branco}
+        />
+        <Frente de={63.11} />
+      </Sequence>
+
+      {/* 3. trechos explicativos: mapa 3D + apresentador */}
+      {GRUPOS.map((g) => (
+        <Sequence
+          key={`m${g.de}`}
+          from={o(g.de)}
+          durationInFrames={o(g.ate) - o(g.de)}
+          name={`mapa ${g.de}`}
+        >
+          <CenaMapa g={g} />
+          <Apresentador g={g} />
+        </Sequence>
+      ))}
+      <Contador de={ROTA.de} ate={ROTA.ate} fim={ROTA.fim} />
+
+      {/* 4. tipografia */}
       {DIGITADOS.map((d) => (
         <Sequence
           key={`t${d.de}`}
           from={d.de}
-          durationInFrames={(d.ate ?? DURACAO) - d.de}
+          durationInFrames={d.ate - d.de}
           name={`texto ${d.texto}`}
         >
           <TextoDigitado d={d} />
         </Sequence>
       ))}
-      <Sequence from={DURACAO - 70} durationInFrames={70} name="logo">
-        <Logo />
-      </Sequence>
       <Legendas />
+      {transicoes.map(({ q, lado }) => (
+        <Sequence key={`l${q}`} from={q - 4} durationInFrames={24} name="luz">
+          <Vazamento lado={lado} />
+        </Sequence>
+      ))}
+      <Sequence
+        from={FIM_FALA - 12}
+        durationInFrames={CARTAO}
+        name="cartão final"
+      >
+        <Cartao />
+      </Sequence>
+      <Grao />
 
       {/* som */}
       {BLOCOS.map(([a, b]) => {
@@ -1100,33 +824,32 @@ export const DivisaoMS3D: React.FC = () => {
           </Sequence>
         );
       })}
-      <Audio src={staticFile("ms/trilha.wav")} volume={trilha} />
+      {/* a trilha (76,8 s) entra depois da primeira frase e fecha no cartão */}
+      <Sequence from={total - TRILHA} name="trilha">
+        <Audio
+          src={staticFile("ms/trilha.wav")}
+          volume={(x) =>
+            trilha(x + total - TRILHA) *
+            interpolate(x, [0, 40, TRILHA - 40, TRILHA], [0, 1, 1, 0], clamp)
+          }
+        />
+      </Sequence>
       {DIGITADOS.flatMap((d) =>
         d.texto.split("").map((ch, j) =>
           ch === " " ? null : (
-            // a letra j aparece quando floor(f·cps) + 1 > j
             <Sequence
               key={`k${d.de}-${j}`}
-              from={d.de + Math.ceil(j / (d.cps ?? CPS))}
+              from={d.de + Math.ceil(j / CPS)}
               durationInFrames={4}
               name="tecla"
               layout="none"
             >
-              <Audio src={staticFile(TECLAS[j % 3])} volume={0.09} />
+              <Audio src={staticFile(TECLAS[j % 3])} volume={0.08} />
             </Sequence>
           ),
         ),
       )}
-      {[
-        CEN.chegada[0],
-        UNO,
-        CEN.estrada[0],
-        CEN.divisao[0],
-        CEN.irmaos[0],
-        CEN.agro[0],
-        CEN.sul[0],
-        CEN.final[0],
-      ].map((q) => (
+      {transicoes.map(({ q }) => (
         <Sequence
           key={`w${q}`}
           from={q - 6}
@@ -1136,22 +859,24 @@ export const DivisaoMS3D: React.FC = () => {
           <Audio src={staticFile("audio/r43/whoosh.wav")} volume={0.12} />
         </Sequence>
       ))}
-      {[o(7.6), CEN.divisao[0] + 20, o(63.2), DURACAO - 70].map((q) => (
+      {[QUARENTA_NOVE.de, o(30.4), PARABENS.de, FIM_FALA].map((q) => (
         <Sequence key={`i${q}`} from={q} durationInFrames={60} name="impacto">
-          <Audio src={staticFile("audio/r43/impacto.wav")} volume={0.16} />
+          <Audio src={staticFile("audio/r43/impacto.wav")} volume={0.15} />
         </Sequence>
       ))}
-      {Array.from({ length: 8 }).map((_, i) => (
-        <Sequence
-          key={`c${i}`}
-          from={o(25.3) + i * 4}
-          durationInFrames={4}
-          name="contador"
-          layout="none"
-        >
-          <Audio src={staticFile("audio/tick.wav")} volume={0.1} />
-        </Sequence>
-      ))}
+      {Array.from({ length: Math.floor((ROTA.ate - ROTA.de) / 4) }).map(
+        (_, i) => (
+          <Sequence
+            key={`c${i}`}
+            from={ROTA.de + i * 4}
+            durationInFrames={4}
+            name="contador"
+            layout="none"
+          >
+            <Audio src={staticFile("audio/tick.wav")} volume={0.06} />
+          </Sequence>
+        ),
+      )}
     </AbsoluteFill>
   );
 };

@@ -12,6 +12,7 @@ import { DURACAO as DURACAO_R43 } from "./Roteiro43/timeline";
 import { DivisaoMS, divisaoPadrao, divisaoSchema } from "./DivisaoMS/DivisaoMS";
 import { DURACAO as DURACAO_MS } from "./DivisaoMS/edicao";
 import { DIVISAO3D_DURACAO, DivisaoMS3D } from "./DivisaoMS3D/DivisaoMS3D";
+import { Mapa3DTeste } from "./DivisaoMS3D/Mapa3D";
 import {
   STORY_DURACAO,
   StoryMateria,
@@ -134,6 +135,14 @@ export const RemotionRoot: React.FC = () => {
         height={1920}
         schema={divisaoSchema}
         defaultProps={divisaoPadrao}
+      />
+      <Composition
+        id="Mapa3DTeste"
+        component={Mapa3DTeste}
+        durationInFrames={660}
+        fps={FPS}
+        width={1080}
+        height={1920}
       />
       <Composition
         // "49 anos da divisão de MS" — versão animada em 3D (orador recortado):

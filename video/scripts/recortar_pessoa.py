@@ -5,7 +5,7 @@ salva o próprio vídeo com fundo transparente (WebM VP9 com alfa), para o
 Remotion compor o orador sobre mapas, estradas etc.
 
 Requisitos (fora do repositório):
-  pip install onnxruntime numpy
+  pip install onnxruntime numpy opencv-python-headless
   modelo: rvm_mobilenetv3_fp32.onnx
   (https://github.com/PeterL1n/RobustVideoMatting/releases/tag/v1.0.0)
 
@@ -19,6 +19,7 @@ import subprocess
 import sys
 import time
 
+import cv2
 import numpy as np
 import onnxruntime as ort
 
@@ -63,8 +64,16 @@ def main() -> None:
         rgb = np.frombuffer(buf, np.uint8).reshape(h, w, 3)
         src = (rgb.astype(np.float32) / 255.0).transpose(2, 0, 1)[None]
         fgr, pha, *rec = sess.run(None, {"src": src, "r1i": rec[0], "r2i": rec[1], "r3i": rec[2], "r4i": rec[3], "downsample_ratio": ds})
-        alfa = (np.clip(pha[0, 0], 0, 1) * 255).astype(np.uint8)
-        rgba = np.dstack([rgb, alfa])
+        a = np.clip(pha[0, 0], 0, 1)
+        # bordas limpas: aperta 1 px a máscara (sem halo do fundo) e, nas
+        # bordas semitransparentes, usa a cor de primeiro plano estimada pelo
+        # RVM (descontaminada da parede/fundo) em vez da cor original
+        a = np.minimum(a, cv2.erode(a, np.ones((3, 3), np.float32)) * 0.6 + a * 0.4)
+        a = cv2.GaussianBlur(a, (0, 0), 0.6)
+        fg = np.clip(fgr[0].transpose(1, 2, 0) * 255, 0, 255)
+        borda = (a < 0.97)[..., None]
+        cor = np.where(borda, fg, rgb.astype(np.float32)).astype(np.uint8)
+        rgba = np.dstack([cor, (a * 255).astype(np.uint8)])
         escritor.stdin.write(rgba.tobytes())
         n += 1
         if n % 100 == 0:
