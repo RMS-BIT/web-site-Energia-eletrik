@@ -221,10 +221,11 @@ Estadual nº 2.141/2000 logo no início, o produtor como herói no texto
 e final com a logo grande em 3D e "10 de outubro · Dia do Produtor Rural".
 As fotos do deputado se empilham em camadas (a nova na frente, as anteriores
 recuam desfocadas) e no final se abrem ao fundo. Cada frase fica na tela o
-tempo de leitura (~3 palavras/s + respiro); 26 s no total.
+tempo de leitura (~3 palavras/s + respiro); 26 s no total. Trilha de viola
+caipira (toada, ponteado em terças) sintetizada em `scripts/gerar_trilha_viola.py`.
 
 ```console
-python3 scripts/gerar_trilha_campo.py src/ReelProdutorAutor/linha.json public/reel-produtor/trilha-autor.wav
+python3 scripts/gerar_trilha_viola.py src/ReelProdutorAutor/linha.json public/reel-produtor/trilha-viola.wav
 npx remotion render ReelProdutorAutor out/reel-produtor-autor.mp4
 ```
 
