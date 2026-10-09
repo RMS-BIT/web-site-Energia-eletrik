@@ -195,6 +195,20 @@ python3 scripts/gerar_trilha_viral.py src/ReelProdutorViral/linha.json public/re
 npx remotion render ReelProdutorViral out/reel-produtor-viral.mp4
 ```
 
+## Reels "Dia do Produtor Rural" — versão equilibrada (ReelProdutorCampo)
+
+Meio-termo entre o viral e o institucional, no padrão de um deputado
+experiente: mantém o gancho ("Se você comeu hoje, agradeça a um produtor
+rural"), as fotos do deputado, a lei e a chamada "Marque um produtor rural",
+mas com uma cena a cada compasso (≈ 2,7 s), fusões suaves, luz dourada,
+partículas de luz e texto que entra com suavidade (sem tremor nem clarão).
+Trilha de violão dedilhado (Karplus-Strong) que cresce até o final.
+
+```console
+python3 scripts/gerar_trilha_campo.py src/ReelProdutorCampo/linha.json public/reel-produtor/trilha-campo.wav
+npx remotion render ReelProdutorCampo out/reel-produtor-campo.mp4
+```
+
 ## Docs
 
 Get started with Remotion by reading the [fundamentals page](https://www.remotion.dev/docs/the-fundamentals).

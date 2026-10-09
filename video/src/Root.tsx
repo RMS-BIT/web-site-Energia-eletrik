@@ -19,6 +19,7 @@ import {
   reelProdutorSchema,
 } from "./ReelProdutor/ReelProdutor";
 import { ReelProdutorViral, VIRAL_DURACAO } from "./ReelProdutorViral/ReelProdutorViral";
+import { CAMPO_DURACAO, ReelProdutorCampo } from "./ReelProdutorCampo/ReelProdutorCampo";
 import { HelloWorld } from "./HelloWorld";
 import { Logo } from "./HelloWorld/Logo";
 import { Title } from "./HelloWorld/Title";
@@ -148,6 +149,16 @@ export const RemotionRoot: React.FC = () => {
         id="ReelProdutorViral"
         component={ReelProdutorViral}
         durationInFrames={VIRAL_DURACAO}
+        fps={FPS}
+        width={1080}
+        height={1920}
+      />
+      <Composition
+        // Reels "Dia do Produtor Rural" — versão equilibrada (violão, luz dourada):
+        // npx remotion render ReelProdutorCampo out/reel-produtor-campo.mp4
+        id="ReelProdutorCampo"
+        component={ReelProdutorCampo}
+        durationInFrames={CAMPO_DURACAO}
         fps={FPS}
         width={1080}
         height={1920}

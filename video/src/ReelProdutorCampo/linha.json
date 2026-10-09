@@ -1,0 +1,12 @@
+{
+  "fps": 30,
+  "bpm": 90,
+  "total": 880,
+  "marcas": {
+    "baixo": 160,
+    "ritmo": 320,
+    "data": 480,
+    "cheio": 560,
+    "final": 720
+  }
+}
