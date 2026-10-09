@@ -1,16 +1,18 @@
 """Trilha do story de matéria: suspense que vira alegria (sintetizada).
 
-0–4,9 s  suspense: pulso grave, tique-taque, cordas em trêmulo e riser
-4,9 s    impacto na revelação da foto
-4,9–9 s  tensão se resolve em acorde maior, arpejo começa
-9–15 s   alegria: groove 120 BPM (bumbo, palmas, chocalho, arpejo, baixo)
-15–18,5  acorde final brilhante e brilho de sinos
+título    suspense: pulso grave, tique-taque, cordas em trêmulo e riser
+foto      impacto na revelação; a tensão se resolve em acorde maior e arpejo
+números   alegria: groove 120 BPM (bumbo, palmas, chocalho, arpejo, baixo)
+final     acorde final brilhante e brilho de sinos
 
-Uso: python3 scripts/gerar_trilha_story.py <saida.wav>
+Os tempos de cada parte vêm da linha do tempo da locução (voz.json).
+
+Uso: python3 scripts/gerar_trilha_story.py <voz.json> <saida.wav>
 """
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
@@ -18,10 +20,13 @@ import numpy as np
 
 from gerar_audio import SR, add, env_adsr, one_pole_lowpass, save, soft_saw, t_axis
 
-TOTAL = 18.5
-REVELA = 4.87
-GROOVE = 9.0
-FINAL = 15.0
+_linha = json.loads(Path(sys.argv[1]).read_text())
+_fps = _linha["fps"]
+_c = _linha["cenas"]
+TOTAL = _linha["total"] / _fps + 0.3
+REVELA = _c["foto"]["de"] / _fps + 0.2
+GROOVE = _c["numeros"]["de"] / _fps
+FINAL = _c["final"]["de"] / _fps
 BEAT = 0.5
 rng = np.random.default_rng(14)
 
@@ -80,7 +85,7 @@ def sino(f, dur=2.0):
 
 
 def main() -> None:
-    out = Path(sys.argv[1])
+    out = Path(sys.argv[2])
     buf = np.zeros(int(TOTAL * SR))
 
     # ---- suspense (Lá menor) ----
@@ -129,13 +134,15 @@ def main() -> None:
         (49.0, [293.66, 392.0, 493.88, 587.33]),
     ]
     compasso = 4 * BEAT
-    for c in range(int((FINAL - GROOVE) / compasso)):
+    for c in range(int(np.ceil((FINAL - GROOVE) / compasso))):
         ini = GROOVE + c * compasso
         baixo, notas = acordes[c % 4]
         pad = sum(soft_saw(f, compasso + 0.2, 6) for f in notas[:3])
         add(buf, one_pole_lowpass(pad, 2200) * env_adsr(len(pad), 0.05, 0.2), ini, 0.03)
         for b in range(8):  # colcheias
             tb = ini + b * BEAT / 2
+            if tb >= FINAL - 0.01:
+                break
             add(buf, pluck(notas[[0, 2, 1, 3, 2, 1, 3, 2][b]] * 2, 0.35), tb, 0.1)
             add(buf, chocalho(), tb + BEAT / 4, 1.0)
             if b % 2 == 0:

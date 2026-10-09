@@ -144,6 +144,21 @@ python3 scripts/gerar_trilha_ms.py 76.8 27.0 59.0 public/ms/trilha.wav
 npx remotion render DivisaoMS out/divisao-ms.mp4
 ```
 
+## Story de matéria (StoryMateria)
+
+Story de utilidade pública a partir de uma matéria (Campo Grande News):
+título em 3D lido junto com a locução feminina em tom de reportagem, foto,
+números com os laços do Outubro Rosa e do Novembro Azul e fechamento com a
+logo. Fundo de jornal claro e desfocado. A locução define a linha do tempo
+(`src/StoryMateria/voz.json`), usada pelas cenas e pela trilha.
+
+```console
+# fotos e logos em public/story/ (fora do Git)
+python scripts/gerar_voz_story.py <pasta_modelos_kokoro> pf_dora 1.06   # voz + voz.json
+python3 scripts/gerar_trilha_story.py src/StoryMateria/voz.json public/story/trilha-v3.wav
+npx remotion render StoryMateria out/story-materia.mp4
+```
+
 ## Docs
 
 Get started with Remotion by reading the [fundamentals page](https://www.remotion.dev/docs/the-fundamentals).
