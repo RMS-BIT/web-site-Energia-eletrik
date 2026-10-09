@@ -1,3 +1,4 @@
+import { loadFont } from "@remotion/fonts";
 import {
   AbsoluteFill,
   Audio,
@@ -11,41 +12,39 @@ import {
 } from "remotion";
 import { z } from "zod";
 import { FONTE } from "../AnuncioImageador/tema";
-import {
-  SOMBRA,
-  clamp,
-  ent,
-  quadroFimVoz,
-  quadroFrase,
-} from "../Materia/comum";
-import voz from "./voz.json";
+import { clamp, ent } from "../Materia/comum";
+import linha from "./linha.json";
 
 // Reels comemorativo "Dia do Produtor Rural" (10 de outubro, MS).
-// Fontes: Lei Estadual nº 2.141, de 28/08/2000 (DOE nº 5.338, de 29/08/2000),
-// base de legislação do Governo de MS; autoria: zeteixeira.com (matéria de
-// 10/10/2017). Conferido em 09/10/2026.
-// A linha do tempo vem da locução (roteiro.json -> voz.json).
+// Estilo de homenagem (não é matéria): fotos em tela cheia com luz quente,
+// frases curtas, música emocional e selo discreto da lei.
+// Fonte da lei: Lei Estadual nº 2.141, de 28/08/2000 (DOE nº 5.338, de
+// 29/08/2000); autoria: zeteixeira.com (matéria de 10/10/2017).
+// Conferido em 09/10/2026. Linha do tempo em linha.json (também usada pela
+// trilha, scripts/gerar_trilha_produtor.py).
 
-const LINHA = voz.cenas;
-type Cena = keyof typeof LINHA;
-const frase = (cena: Cena, n: number) => quadroFrase(voz, cena, n);
-const fimVoz = (cena: Cena) => quadroFimVoz(voz, cena);
+const MANUSCRITA = "Dancing Script Var";
+loadFont({
+  family: MANUSCRITA,
+  url: staticFile("fontes/DancingScript-var.ttf"),
+  weight: "400 700",
+  format: "truetype",
+});
 
-export const REEL_PRODUTOR_DURACAO = voz.total;
+const C = linha.cenas;
+export const REEL_PRODUTOR_DURACAO = linha.total;
+const TRANSICAO = 16; // quadros de fusão entre cenas
 
 const COR = {
-  marinho: "#0D355A",
   amarelo: "#F6D54A",
   verde: "#44B552",
   verdeEscuro: "#1E6B3A",
-  azul: "#307ABC",
   branco: "#FFFFFF",
-  tinta: "#0D2440",
-  cinza: "#5A6B80",
 };
 
 const LOGO = "reel-produtor/logo-ze-verde.png";
 const LOGO_PROP = 478 / 850; // altura / largura
+const SOMBRA_TEXTO = "0 4px 24px rgba(0,0,0,0.45), 0 2px 6px rgba(0,0,0,0.35)";
 
 export const reelProdutorSchema = z.object({
   titulo: z.string(),
@@ -57,627 +56,465 @@ export const reelProdutorPadrao: ReelProdutorProps = {
   local: "Mato Grosso do Sul",
 };
 
-// marca-texto amarelo que "pinta" da esquerda para a direita
-const Marca: React.FC<{ p: number; style: React.CSSProperties }> = ({
-  p,
-  style,
-}) => (
-  <span
-    style={{
-      position: "absolute",
-      background: COR.amarelo,
-      borderRadius: 6,
-      transform: `scaleX(${p})`,
-      transformOrigin: "left",
-      ...style,
-    }}
-  />
-);
-
-// ---------- Fundo: campo claro e desfocado ----------
-const FundoCampo: React.FC = () => {
+// ---------- Foto em tela cheia: fundo desfocado + faixa nítida com bordas suaves ----------
+const FotoCinema: React.FC<{
+  src: string;
+  dur: number;
+  foco: string;
+  deriva?: number;
+  topo?: number; // início da faixa nítida (px)
+}> = ({ src, dur, foco, deriva = 1, topo = 380 }) => {
   const f = useCurrentFrame();
-  const p = f / REEL_PRODUTOR_DURACAO;
+  const p = f / dur;
   return (
-    <AbsoluteFill style={{ background: "#EEF3EA", overflow: "hidden" }}>
+    <AbsoluteFill>
       <Img
-        src={staticFile("reel-produtor/foto-milho.jpg")}
+        src={staticFile(src)}
         style={{
           position: "absolute",
           inset: 0,
           width: "100%",
           height: "100%",
           objectFit: "cover",
-          filter: "blur(22px) brightness(1.08) saturate(1.1)",
-          transform: `scale(${1.25 + p * 0.1}) translateX(${Math.sin(f / 150) * 20}px)`,
+          objectPosition: foco,
+          filter: "blur(28px) brightness(0.72) saturate(1.2)",
+          transform: "scale(1.3)",
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          top: topo,
+          height: 980,
+          overflow: "hidden",
+          WebkitMaskImage:
+            "linear-gradient(180deg, transparent 0%, #000 16%, #000 84%, transparent 100%)",
+          maskImage:
+            "linear-gradient(180deg, transparent 0%, #000 16%, #000 84%, transparent 100%)",
+        }}
+      >
+        <Img
+          src={staticFile(src)}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            objectPosition: foco,
+            filter: "saturate(1.08) contrast(1.04)",
+            transform: `scale(${1.04 + p * 0.1}) translateX(${(p - 0.5) * 30 * deriva}px)`,
+          }}
+        />
+      </div>
+    </AbsoluteFill>
+  );
+};
+
+// ---------- Luz quente (fim de tarde) e vinheta, por cima de tudo ----------
+const LuzQuente: React.FC = () => {
+  const f = useCurrentFrame();
+  return (
+    <AbsoluteFill style={{ pointerEvents: "none" }}>
+      <AbsoluteFill
+        style={{
+          background: `radial-gradient(ellipse at ${78 + Math.sin(f / 80) * 6}% 8%, rgba(255,196,90,0.55) 0%, rgba(255,170,60,0.18) 35%, transparent 65%)`,
+          mixBlendMode: "screen",
+        }}
+      />
+      <AbsoluteFill
+        style={{
+          background: "rgba(255,170,80,0.10)",
+          mixBlendMode: "soft-light",
         }}
       />
       <AbsoluteFill
         style={{
           background:
-            "radial-gradient(ellipse at 50% 44%, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.58) 50%, rgba(255,255,255,0.32) 100%)",
-        }}
-      />
-      {/* brilho de sol suave no alto */}
-      <div
-        style={{
-          position: "absolute",
-          left: 620 + Math.sin(f / 90) * 30,
-          top: -260,
-          width: 760,
-          height: 760,
-          borderRadius: "50%",
-          background: `radial-gradient(circle, ${COR.amarelo} 0%, transparent 65%)`,
-          opacity: 0.35,
-          filter: "blur(30px)",
+            "radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(10,8,0,0.45) 100%)",
         }}
       />
     </AbsoluteFill>
   );
 };
 
-// ---------- Cena 1: abertura — "10 de outubro · Dia do Produtor Rural" ----------
-const Abertura: React.FC<ReelProdutorProps & { dur: number }> = ({
-  titulo,
-  local,
-  dur,
-}) => {
+// clarão quente em cada troca de cena
+const Clarao: React.FC = () => {
   const f = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const f1 = frase("abertura", 1);
-  const pill = spring({
-    frame: f - (frase("abertura", 0) - 4),
-    fps,
-    config: { damping: 14, stiffness: 120 },
-  });
-  const palavras = titulo.split(" ");
-  const iniDestaque = palavras.indexOf("Produtor");
-  const lido = interpolate(
-    f,
-    [f1 - 4, fimVoz("abertura") - 30],
-    [-1, palavras.length],
-    clamp,
+  const trocas = [C.terra.de, C.colheita.de, C.futuro.de, C.lei.de, C.final.de];
+  const k = Math.max(
+    ...trocas.map((q) =>
+      Math.max(0, 1 - Math.abs(f - (q + TRANSICAO / 2)) / 14),
+    ),
   );
-  const sub = ent(f, f1 + 18, f1 + 34);
-  const foto = spring({
-    frame: f - 4,
-    fps,
-    config: { damping: 20, stiffness: 60 },
-  });
-  const sai = ent(f, dur - 14, dur);
-  const brilho = interpolate(f, [30, 90], [-30, 130], clamp);
   return (
     <AbsoluteFill
-      style={{ fontFamily: FONTE, color: COR.tinta, opacity: 1 - sai }}
+      style={{
+        background:
+          "radial-gradient(ellipse at 30% 40%, rgba(255,214,140,0.9) 0%, rgba(255,170,80,0.4) 40%, transparent 75%)",
+        mixBlendMode: "screen",
+        opacity: k * 0.55,
+        pointerEvents: "none",
+      }}
+    />
+  );
+};
+
+// ---------- Frase: manuscrita ("A quem") + linha forte ----------
+const Frase: React.FC<{
+  manuscrita?: string;
+  forte: string;
+  atraso?: number;
+  tamanho?: number;
+}> = ({ manuscrita, forte, atraso = 10, tamanho = 92 }) => {
+  const f = useCurrentFrame();
+  const m = ent(f, atraso, atraso + 22);
+  const palavras = forte.split(" ");
+  return (
+    <div
+      style={{
+        textAlign: "center",
+        color: COR.branco,
+        textShadow: SOMBRA_TEXTO,
+      }}
     >
-      <AbsoluteFill
-        style={{ alignItems: "center", paddingTop: 220, textAlign: "center" }}
-      >
+      {manuscrita ? (
         <div
           style={{
-            padding: "14px 32px",
-            borderRadius: 999,
-            background: COR.amarelo,
-            color: COR.marinho,
-            fontSize: 36,
-            fontWeight: 800,
-            letterSpacing: 3,
-            boxShadow: "0 14px 30px rgba(13,36,64,0.16)",
-            opacity: Math.min(1, pill * 1.4),
-            transform: `scale(${0.6 + 0.4 * pill})`,
+            fontFamily: MANUSCRITA,
+            fontWeight: 700,
+            fontSize: 104,
+            lineHeight: 1,
+            color: COR.amarelo,
+            clipPath: `inset(-20% ${(1 - m) * 100}% -20% -5%)`,
+            marginBottom: 4,
+          }}
+        >
+          {manuscrita}
+        </div>
+      ) : null}
+      <div
+        style={{
+          fontFamily: FONTE,
+          fontWeight: 800,
+          fontSize: tamanho,
+          lineHeight: 1.04,
+          letterSpacing: -2,
+          padding: "0 60px",
+        }}
+      >
+        {palavras.map((p, i) => {
+          const k = ent(f, atraso + 12 + i * 4, atraso + 30 + i * 4);
+          if (p === "|") return <br key={i} />;
+          return (
+            <span
+              key={i}
+              style={{
+                display: "inline-block",
+                marginRight: "0.22em",
+                opacity: k,
+                transform: `translateY(${(1 - k) * 26}px)`,
+                filter: `blur(${(1 - k) * 8}px)`,
+              }}
+            >
+              {p}
+            </span>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+const Cena: React.FC<{ primeira?: boolean; children: React.ReactNode }> = ({
+  primeira,
+  children,
+}) => {
+  const f = useCurrentFrame();
+  const entra = primeira ? 1 : ent(f, 0, TRANSICAO);
+  return (
+    <AbsoluteFill
+      style={{ opacity: entra, transform: `scale(${1.03 - 0.03 * entra})` }}
+    >
+      {children}
+    </AbsoluteFill>
+  );
+};
+
+// ---------- Cena 1: abertura ----------
+const Abertura: React.FC<ReelProdutorProps> = ({ titulo, local }) => {
+  const f = useCurrentFrame();
+  const data = ent(f, 8, 26);
+  const sub = ent(f, 44, 62);
+  return (
+    <Cena primeira>
+      <FotoCinema
+        src="reel-produtor/foto-soja.jpg"
+        dur={C.abertura.dur}
+        foco="50% 55%"
+      />
+      <AbsoluteFill style={{ alignItems: "center", paddingTop: 250 }}>
+        <div
+          style={{
+            fontFamily: FONTE,
+            fontWeight: 700,
+            fontSize: 34,
+            letterSpacing: 10 + (1 - data) * 14,
+            color: COR.amarelo,
+            textShadow: SOMBRA_TEXTO,
+            opacity: data,
+            marginBottom: 18,
           }}
         >
           10 DE OUTUBRO
         </div>
+        <Frase
+          forte={titulo.replace(" Produtor", " | Produtor")}
+          atraso={16}
+          tamanho={104}
+        />
         <div
           style={{
-            fontSize: 100,
-            fontWeight: 800,
-            lineHeight: 1.02,
-            letterSpacing: -2,
-            marginTop: 26,
-            width: 940,
-          }}
-        >
-          {palavras.map((p, i) => {
-            const k = Math.max(0, Math.min(1, lido - i + 1));
-            return (
-              <span key={i}>
-                {i === iniDestaque ? <br /> : null}
-                <span
-                  style={{
-                    position: "relative",
-                    display: "inline-block",
-                    marginRight: "0.22em",
-                  }}
-                >
-                  {i >= iniDestaque ? (
-                    <Marca
-                      p={Math.max(0, Math.min(1, (lido - i) * 1.4))}
-                      style={{ left: -6, right: -6, bottom: 8, height: "34%" }}
-                    />
-                  ) : null}
-                  <span
-                    style={{
-                      position: "relative",
-                      display: "inline-block",
-                      opacity: 0.1 + 0.9 * k,
-                      transform: `translateY(${(1 - k) * 18}px)`,
-                      filter: `blur(${(1 - k) * 4}px)`,
-                    }}
-                  >
-                    {p}
-                  </span>
-                </span>
-              </span>
-            );
-          })}
-        </div>
-        <div
-          style={{
-            fontSize: 40,
+            fontFamily: FONTE,
             fontWeight: 600,
-            color: COR.verdeEscuro,
-            marginTop: 14,
+            fontSize: 38,
+            color: COR.branco,
+            textShadow: SOMBRA_TEXTO,
+            marginTop: 16,
             opacity: sub,
-            transform: `translateY(${(1 - sub) * 16}px)`,
+            transform: `translateY(${(1 - sub) * 14}px)`,
           }}
         >
-          em {local}
+          {local}
         </div>
       </AbsoluteFill>
+    </Cena>
+  );
+};
+
+// ---------- Cenas 2–4: homenagem ----------
+const Homenagem: React.FC<{
+  src: string;
+  dur: number;
+  foco: string;
+  manuscrita: string;
+  forte: string;
+  deriva?: number;
+  topo?: number;
+}> = ({ src, dur, foco, manuscrita, forte, deriva, topo }) => (
+  <Cena>
+    <FotoCinema src={src} dur={dur} foco={foco} deriva={deriva} topo={topo} />
+    <AbsoluteFill style={{ alignItems: "center", paddingTop: 210 }}>
+      <Frase manuscrita={manuscrita} forte={forte} atraso={12} />
+    </AbsoluteFill>
+  </Cena>
+);
+
+// ---------- Cena 5: selo da lei ----------
+const Selo: React.FC = () => {
+  const f = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const s = spring({
+    frame: f - 8,
+    fps,
+    config: { damping: 18, stiffness: 90 },
+  });
+  const aut = ent(f, 34, 52);
+  return (
+    <Cena>
+      <FotoCinema
+        src="reel-produtor/foto-milho.jpg"
+        dur={C.lei.dur}
+        foco="70% 50%"
+      />
+      <AbsoluteFill style={{ background: "rgba(12,20,8,0.35)" }} />
       <AbsoluteFill
-        style={{ perspective: 1600, alignItems: "center", paddingTop: 720 }}
+        style={{
+          alignItems: "center",
+          justifyContent: "center",
+          paddingBottom: 120,
+        }}
       >
         <div
           style={{
-            position: "relative",
-            width: 1000,
-            height: 640,
-            borderRadius: 30,
-            overflow: "hidden",
-            boxShadow: `${SOMBRA}, 0 0 0 8px #FFFFFF`,
-            opacity: Math.min(1, foto * 1.5),
-            transform: `translateZ(${interpolate(foto, [0, 1], [-650, 0])}px) rotateY(${interpolate(foto, [0, 1], [26, 0]) - sai * 20}deg) rotateX(${interpolate(foto, [0, 1], [-14, 3])}deg)`,
+            width: 860,
+            padding: "52px 56px",
+            borderRadius: 28,
+            border: `2px solid ${COR.amarelo}AA`,
+            background: "rgba(14,24,10,0.45)",
+            backdropFilter: "blur(10px)",
+            textAlign: "center",
+            color: COR.branco,
+            fontFamily: FONTE,
+            opacity: Math.min(1, s * 1.4),
+            transform: `scale(${0.88 + 0.12 * s})`,
+            filter: `blur(${(1 - Math.min(1, s * 1.2)) * 8}px)`,
           }}
         >
-          <Img
-            src={staticFile("reel-produtor/foto-soja.jpg")}
+          <div
             style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              transform: `scale(${1.04 + (f / dur) * 0.1})`,
+              fontSize: 24,
+              fontWeight: 700,
+              letterSpacing: 6,
+              color: COR.amarelo,
             }}
+          >
+            DATA INSTITUÍDA PELA
+          </div>
+          <div
+            style={{
+              fontSize: 66,
+              fontWeight: 800,
+              letterSpacing: -1,
+              marginTop: 14,
+            }}
+          >
+            Lei Estadual nº 2.141
+          </div>
+          <div
+            style={{
+              fontSize: 32,
+              fontWeight: 500,
+              marginTop: 6,
+              opacity: 0.85,
+            }}
+          >
+            de 28 de agosto de 2000
+          </div>
+          <div
+            style={{
+              width: 120,
+              height: 2,
+              background: `${COR.amarelo}AA`,
+              margin: "30px auto",
+            }}
+          />
+          <div
+            style={{
+              opacity: aut,
+              transform: `translateY(${(1 - aut) * 12}px)`,
+            }}
+          >
+            <span
+              style={{
+                fontFamily: MANUSCRITA,
+                fontWeight: 700,
+                fontSize: 52,
+                color: COR.amarelo,
+              }}
+            >
+              de autoria do{" "}
+            </span>
+            <span style={{ fontSize: 40, fontWeight: 700 }}>
+              deputado Zé Teixeira
+            </span>
+          </div>
+        </div>
+      </AbsoluteFill>
+    </Cena>
+  );
+};
+
+// ---------- Cena 6: "Parabéns, produtor rural!" + logo ----------
+const Final: React.FC<ReelProdutorProps> = ({ local }) => {
+  const f = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const logo = spring({
+    frame: f - 30,
+    fps,
+    config: { damping: 13, stiffness: 70, mass: 1.1 },
+  });
+  const rod = ent(f, 52, 70);
+  const ciclo = Math.max(0, f - 50) % 60;
+  const brilho = interpolate(ciclo, [0, 30], [-0.4, 1.4], clamp);
+  const mascara = `url(${staticFile(LOGO)})`;
+  const W = 900;
+  const H = Math.round(W * LOGO_PROP);
+  return (
+    <Cena>
+      <FotoCinema
+        src="reel-produtor/foto-tablet.jpg"
+        dur={C.final.dur}
+        foco="57% 40%"
+      />
+      <AbsoluteFill
+        style={{
+          background:
+            "linear-gradient(180deg, rgba(10,14,6,0.35) 0%, rgba(10,14,6,0.15) 45%, rgba(10,14,6,0.45) 100%)",
+        }}
+      />
+      <AbsoluteFill
+        style={{ alignItems: "center", paddingTop: 250, perspective: 1300 }}
+      >
+        <Frase
+          manuscrita="Parabéns,"
+          forte="produtor rural!"
+          atraso={4}
+          tamanho={98}
+        />
+        <div
+          style={{
+            position: "relative",
+            width: W,
+            height: H,
+            marginTop: 70,
+            opacity: Math.min(1, logo * 1.5),
+            transform: `rotateY(${(1 - logo) * -50 + Math.sin(f / 26) * 5}deg) translateY(${Math.sin(f / 20) * 6}px) scale(${0.6 + 0.4 * logo})`,
+            filter: `drop-shadow(0 24px 50px rgba(0,0,0,0.45)) blur(${(1 - Math.min(1, logo * 1.3)) * 10}px)`,
+          }}
+        >
+          {/* halo claro atrás da logo */}
+          <div
+            style={{
+              position: "absolute",
+              inset: -120,
+              borderRadius: "50%",
+              background:
+                "radial-gradient(ellipse, rgba(255,236,170,0.55) 0%, rgba(255,220,120,0.2) 40%, transparent 70%)",
+              filter: "blur(10px)",
+            }}
+          />
+          <Img
+            src={staticFile(LOGO)}
+            style={{ position: "relative", width: W, height: H }}
           />
           <div
             style={{
               position: "absolute",
               inset: 0,
-              background: `linear-gradient(115deg, transparent ${brilho - 15}%, rgba(255,255,255,0.3) ${brilho}%, transparent ${brilho + 15}%)`,
+              WebkitMaskImage: mascara,
+              WebkitMaskSize: "100% 100%",
+              maskImage: mascara,
+              maskSize: "100% 100%",
+              background: `linear-gradient(105deg, transparent ${brilho * 100 - 16}%, rgba(255,255,255,0.7) ${brilho * 100}%, transparent ${brilho * 100 + 16}%)`,
+              mixBlendMode: "screen",
             }}
           />
         </div>
-      </AbsoluteFill>
-    </AbsoluteFill>
-  );
-};
-
-// ---------- Cena 2: homenagem, uma foto por frase ----------
-const FOTOS = [
-  "reel-produtor/foto-semente.jpg",
-  "reel-produtor/foto-milho.jpg",
-  "reel-produtor/foto-tablet.jpg",
-];
-const TEXTOS: { t: string; d: string[] }[] = [
-  { t: "Homens e mulheres do campo", d: ["campo"] },
-  { t: "Com o suor do rosto, produzem alimento", d: ["alimento"] },
-  { t: "E movem a economia sul-mato-grossense", d: ["economia"] },
-];
-
-const Homenagem: React.FC<{ dur: number }> = ({ dur }) => {
-  const f = useCurrentFrame();
-  const sai = ent(f, dur - 12, dur);
-  const inicios = [0, 1, 2].map((n) => frase("homenagem", n));
-  const fins = [inicios[1], inicios[2], fimVoz("homenagem")];
-  const t0 = ent(f, 0, 16);
-  return (
-    <AbsoluteFill
-      style={{ fontFamily: FONTE, color: COR.tinta, opacity: 1 - sai }}
-    >
-      <AbsoluteFill
-        style={{
-          alignItems: "center",
-          paddingTop: 300,
-          textAlign: "center",
-          opacity: t0,
-        }}
-      >
         <div
           style={{
-            fontSize: 26,
-            fontWeight: 700,
-            letterSpacing: 6,
-            color: COR.verdeEscuro,
-          }}
-        >
-          HOMENAGEM A QUEM PRODUZ
-        </div>
-      </AbsoluteFill>
-      {/* fotos: cada uma entra em 3D quando sua frase começa */}
-      <AbsoluteFill
-        style={{ perspective: 1600, alignItems: "center", paddingTop: 400 }}
-      >
-        <div style={{ position: "relative", width: 1000, height: 667 }}>
-          {FOTOS.map((src, i) => {
-            const e = ent(f, inicios[i] - 10, inicios[i] + 12);
-            const s =
-              i < 2 ? ent(f, inicios[i + 1] - 10, inicios[i + 1] + 12) : 0;
-            if (e <= 0 || s >= 1) return null;
-            const local = (f - inicios[i] + 10) / (fins[i] - inicios[i] + 20);
-            return (
-              <div
-                key={src}
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  borderRadius: 30,
-                  overflow: "hidden",
-                  boxShadow: `${SOMBRA}, 0 0 0 8px #FFFFFF`,
-                  opacity: Math.min(e, 1 - s),
-                  transform: `translateX(${(1 - e) * 260 - s * 260}px) rotateY(${(1 - e) * -28 + s * 28}deg) scale(${0.92 + 0.08 * e - 0.06 * s})`,
-                }}
-              >
-                <Img
-                  src={staticFile(src)}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    transform: `scale(${1.04 + local * 0.08})`,
-                  }}
-                />
-              </div>
-            );
-          })}
-        </div>
-      </AbsoluteFill>
-      {/* frase da locução, palavra por palavra */}
-      <AbsoluteFill
-        style={{
-          paddingTop: 1150,
-          paddingLeft: 70,
-          paddingRight: 70,
-          alignItems: "center",
-          textAlign: "center",
-        }}
-      >
-        {TEXTOS.map((x, i) => {
-          const palavras = x.t.split(" ");
-          const vis =
-            ent(f, inicios[i] - 6, inicios[i] + 6) *
-            (1 - ent(f, fins[i] - 4, fins[i] + 6));
-          if (vis <= 0 && i < 2) return null;
-          const lido = interpolate(
-            f,
-            [inicios[i], fins[i] - 10],
-            [0, palavras.length],
-            clamp,
-          );
-          return (
-            <div
-              key={i}
-              style={{
-                position: "absolute",
-                left: 70,
-                right: 70,
-                fontSize: 64,
-                fontWeight: 800,
-                lineHeight: 1.12,
-                letterSpacing: -1,
-                opacity: i === 2 ? ent(f, inicios[i] - 6, inicios[i] + 6) : vis,
-              }}
-            >
-              {palavras.map((p, j) => {
-                const k = Math.max(0, Math.min(1, lido - j + 0.6));
-                const destaque = x.d.includes(p.replace(/[,.]/g, ""));
-                return (
-                  <span
-                    key={j}
-                    style={{
-                      position: "relative",
-                      display: "inline-block",
-                      marginRight: "0.24em",
-                    }}
-                  >
-                    {destaque ? (
-                      <Marca
-                        p={Math.max(0, Math.min(1, (lido - j) * 1.5))}
-                        style={{
-                          left: -6,
-                          right: -6,
-                          bottom: 6,
-                          height: "36%",
-                        }}
-                      />
-                    ) : null}
-                    <span
-                      style={{
-                        position: "relative",
-                        display: "inline-block",
-                        opacity: 0.15 + 0.85 * k,
-                        transform: `translateY(${(1 - k) * 14}px)`,
-                      }}
-                    >
-                      {p}
-                    </span>
-                  </span>
-                );
-              })}
-            </div>
-          );
-        })}
-      </AbsoluteFill>
-    </AbsoluteFill>
-  );
-};
-
-// ---------- Cena 3: a origem da data (menção rápida) ----------
-const Origem: React.FC<{ dur: number }> = ({ dur }) => {
-  const f = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const entra = spring({
-    frame: f,
-    fps,
-    config: { damping: 20, stiffness: 70 },
-  });
-  const sai = ent(f, dur - 14, dur);
-  // "...de autoria do deputado Zé Teixeira" fica na segunda metade da frase
-  const fAutoria =
-    LINHA.origem.voz -
-    LINHA.origem.de +
-    Math.round(LINHA.origem.duracao * voz.fps * 0.48);
-  const aut = spring({
-    frame: f - fAutoria,
-    fps,
-    config: { damping: 14, stiffness: 120 },
-  });
-  const marca = ent(f, 26, 46);
-  return (
-    <AbsoluteFill
-      style={{
-        fontFamily: FONTE,
-        color: COR.tinta,
-        alignItems: "center",
-        justifyContent: "center",
-        perspective: 1400,
-        paddingBottom: 120,
-        opacity: 1 - sai,
-      }}
-    >
-      <div
-        style={{
-          width: 920,
-          padding: "56px 60px 60px",
-          borderRadius: 32,
-          background: COR.branco,
-          boxShadow: SOMBRA,
-          textAlign: "center",
-          opacity: Math.min(1, entra * 1.5),
-          transform: `translateZ(${interpolate(entra, [0, 1], [-700, 0])}px) rotateX(${interpolate(entra, [0, 1], [34, 6]) + sai * 10}deg) rotateY(${interpolate(entra, [0, 1], [-20, -4])}deg)`,
-        }}
-      >
-        <div
-          style={{
-            fontSize: 26,
-            fontWeight: 700,
-            letterSpacing: 6,
-            color: COR.verdeEscuro,
-          }}
-        >
-          A ORIGEM DA DATA
-        </div>
-        <div
-          style={{
-            fontSize: 76,
-            fontWeight: 800,
-            lineHeight: 1.05,
-            marginTop: 16,
-            letterSpacing: -1,
-          }}
-        >
-          <span style={{ position: "relative", display: "inline-block" }}>
-            <Marca
-              p={marca}
-              style={{ left: -8, right: -8, bottom: 6, height: "36%" }}
-            />
-            <span style={{ position: "relative" }}>Lei Estadual nº 2.141</span>
-          </span>
-        </div>
-        <div
-          style={{
-            fontSize: 36,
+            fontFamily: FONTE,
             fontWeight: 600,
-            marginTop: 10,
-            color: COR.cinza,
-          }}
-        >
-          de 28 de agosto de 2000
-        </div>
-        <div
-          style={{
-            height: 2,
-            background: "rgba(13,36,64,0.1)",
-            margin: "34px 0",
-          }}
-        />
-        <div
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 14,
-            padding: "18px 34px",
-            borderRadius: 999,
-            background: COR.verdeEscuro,
-            color: COR.branco,
-            fontSize: 38,
-            fontWeight: 700,
-            opacity: Math.min(1, aut * 1.4),
-            transform: `scale(${0.7 + 0.3 * aut})`,
-          }}
-        >
-          <span style={{ color: COR.amarelo, fontWeight: 800 }}>Autoria:</span>{" "}
-          Deputado Zé Teixeira
-        </div>
-      </div>
-    </AbsoluteFill>
-  );
-};
-
-// ---------- Cena 4: fechamento — a logo é a protagonista ----------
-const Final: React.FC = () => {
-  const f = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const logo = spring({
-    frame: f - 2,
-    fps,
-    config: { damping: 13, stiffness: 70, mass: 1.1 },
-  });
-  const t = ent(f, frase("final", 0) - 2, frase("final", 0) + 14);
-  const t2 = ent(f, frase("final", 1) - 2, frase("final", 1) + 14);
-  const pop = spring({
-    frame: f - (frase("final", 1) - 2),
-    fps,
-    config: { damping: 10, stiffness: 140 },
-  });
-  const ciclo = Math.max(0, f - 22) % 50;
-  const brilho = interpolate(ciclo, [0, 26], [-0.4, 1.4], clamp);
-  const mascara = `url(${staticFile(LOGO)})`;
-  const W = 960;
-  const H = Math.round(W * LOGO_PROP);
-  const pulso = 1 + Math.sin(f / 14) * 0.012;
-  return (
-    <AbsoluteFill
-      style={{
-        fontFamily: FONTE,
-        color: COR.tinta,
-        alignItems: "center",
-        justifyContent: "center",
-        perspective: 1300,
-      }}
-    >
-      <div
-        style={{
-          position: "absolute",
-          width: 1300,
-          height: 1000,
-          borderRadius: "50%",
-          background: `radial-gradient(ellipse, #FFFFFF 0%, ${COR.amarelo}55 38%, transparent 68%)`,
-          opacity: logo,
-          transform: `scale(${0.6 + 0.4 * logo})`,
-          filter: "blur(10px)",
-        }}
-      />
-      <svg
-        width={1080}
-        height={1920}
-        style={{ position: "absolute", opacity: logo * 0.16 }}
-      >
-        {Array.from({ length: 14 }).map((_, i) => {
-          const a = (i / 14) * Math.PI * 2 + f / 90;
-          return (
-            <line
-              key={i}
-              x1={540}
-              y1={900}
-              x2={540 + Math.cos(a) * 1100}
-              y2={900 + Math.sin(a) * 1100}
-              stroke={i % 2 ? COR.verde : COR.amarelo}
-              strokeWidth={36}
-              strokeLinecap="round"
-              opacity={0.55}
-            />
-          );
-        })}
-      </svg>
-      <div
-        style={{
-          padding: "14px 30px",
-          borderRadius: 999,
-          background: COR.amarelo,
-          color: COR.marinho,
-          fontSize: 34,
-          fontWeight: 800,
-          letterSpacing: 3,
-          opacity: logo,
-          transform: `translateY(${(1 - logo) * 20}px)`,
-          marginBottom: 30,
-        }}
-      >
-        10 DE OUTUBRO
-      </div>
-      <div
-        style={{
-          position: "relative",
-          width: W,
-          height: H,
-          opacity: Math.min(1, logo * 1.5),
-          transform: `rotateY(${(1 - logo) * -60 + Math.sin(f / 22) * 6}deg) rotateX(${Math.sin(f / 30) * 3}deg) translateY(${Math.sin(f / 18) * 6}px) scale(${(0.55 + 0.45 * logo) * pulso})`,
-          filter: `drop-shadow(0 26px 40px rgba(13,36,64,0.25)) blur(${(1 - Math.min(1, logo * 1.3)) * 10}px)`,
-        }}
-      >
-        <Img src={staticFile(LOGO)} style={{ width: W, height: H }} />
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            WebkitMaskImage: mascara,
-            WebkitMaskSize: "100% 100%",
-            maskImage: mascara,
-            maskSize: "100% 100%",
-            background: `linear-gradient(105deg, transparent ${brilho * 100 - 16}%, rgba(255,255,255,0.75) ${brilho * 100}%, transparent ${brilho * 100 + 16}%)`,
-            mixBlendMode: "screen",
-          }}
-        />
-      </div>
-      <div style={{ marginTop: 30, textAlign: "center", padding: "0 70px" }}>
-        <div
-          style={{
             fontSize: 34,
-            fontWeight: 600,
-            lineHeight: 1.3,
-            opacity: t,
-            transform: `translateY(${(1 - t) * 20}px)`,
+            letterSpacing: 2,
+            color: COR.branco,
+            textShadow: SOMBRA_TEXTO,
+            marginTop: 40,
+            opacity: rod,
+            transform: `translateY(${(1 - rod) * 14}px)`,
           }}
         >
-          A todos que plantam, criam e produzem
-          <br />
-          em Mato Grosso do Sul:
+          10 de outubro · {local}
         </div>
-        <div
-          style={{
-            fontSize: 68,
-            fontWeight: 800,
-            color: COR.verdeEscuro,
-            marginTop: 14,
-            letterSpacing: -1,
-            opacity: Math.min(1, t2 * 1.5),
-            transform: `scale(${0.8 + 0.2 * pop})`,
-          }}
-        >
-          Parabéns, produtor rural!
-        </div>
-      </div>
-      <div style={{ height: 160 }} />
-    </AbsoluteFill>
+      </AbsoluteFill>
+    </Cena>
   );
 };
 
 // ---------- Marca d'água: logo no canto inferior direito ----------
 const MarcaDagua: React.FC = () => {
   const f = useCurrentFrame();
-  const op =
-    ent(f, 6, 24) * (1 - ent(f, LINHA.final.de - 12, LINHA.final.de + 6));
+  const op = ent(f, 10, 28) * (1 - ent(f, C.final.de, C.final.de + TRANSICAO));
   const W = 210;
   return (
     <Img
@@ -689,96 +526,95 @@ const MarcaDagua: React.FC = () => {
         width: W,
         height: Math.round(W * LOGO_PROP),
         opacity: op * 0.92,
-        filter: "drop-shadow(0 6px 14px rgba(13,36,64,0.25))",
+        filter: "drop-shadow(0 6px 14px rgba(0,0,0,0.35))",
       }}
     />
   );
 };
 
-// trilha mais baixa enquanto a locução fala; sobe quando a voz termina
-const volumeTrilha = (x: number) =>
-  interpolate(
-    x,
-    [
-      0,
-      10,
-      LINHA.final.de + fimVoz("final"),
-      LINHA.final.de + fimVoz("final") + 15,
-      REEL_PRODUTOR_DURACAO - 30,
-      REEL_PRODUTOR_DURACAO,
-    ],
-    [0, 0.3, 0.3, 0.75, 0.75, 0],
-    clamp,
-  );
-
 export const ReelProdutor: React.FC<ReelProdutorProps> = (props) => {
-  const ordem = ["abertura", "homenagem", "origem", "final"] as const;
+  const f = useCurrentFrame();
+  const abre = ent(f, 0, 14); // sai do preto
   return (
-    <AbsoluteFill style={{ backgroundColor: "#EEF3EA" }}>
-      <FundoCampo />
-      <Sequence
-        from={LINHA.abertura.de}
-        durationInFrames={LINHA.abertura.dur}
-        name="abertura"
-      >
-        <Abertura {...props} dur={LINHA.abertura.dur} />
-      </Sequence>
-      <Sequence
-        from={LINHA.homenagem.de}
-        durationInFrames={LINHA.homenagem.dur}
-        name="homenagem"
-      >
-        <Homenagem dur={LINHA.homenagem.dur} />
-      </Sequence>
-      <Sequence
-        from={LINHA.origem.de}
-        durationInFrames={LINHA.origem.dur}
-        name="origem"
-      >
-        <Origem dur={LINHA.origem.dur} />
-      </Sequence>
-      <Sequence
-        from={LINHA.final.de}
-        durationInFrames={LINHA.final.dur}
-        name="final"
-      >
-        <Final />
-      </Sequence>
-      <MarcaDagua />
+    <AbsoluteFill style={{ backgroundColor: "#000" }}>
+      <AbsoluteFill style={{ opacity: abre }}>
+        <Sequence
+          from={C.abertura.de}
+          durationInFrames={C.abertura.dur}
+          name="abertura"
+        >
+          <Abertura {...props} />
+        </Sequence>
+        <Sequence from={C.terra.de} durationInFrames={C.terra.dur} name="terra">
+          <Homenagem
+            src="reel-produtor/foto-semente.jpg"
+            dur={C.terra.dur}
+            foco="55% 45%"
+            manuscrita="A quem"
+            forte="cuida da terra"
+          />
+        </Sequence>
+        <Sequence
+          from={C.colheita.de}
+          durationInFrames={C.colheita.dur}
+          name="colheita"
+        >
+          <Homenagem
+            src="reel-produtor/foto-milho.jpg"
+            dur={C.colheita.dur}
+            foco="72% 50%"
+            manuscrita="A quem"
+            forte="planta e colhe"
+            deriva={-1}
+          />
+        </Sequence>
+        <Sequence
+          from={C.futuro.de}
+          durationInFrames={C.futuro.dur}
+          name="futuro"
+        >
+          <Homenagem
+            src="reel-produtor/foto-tablet.jpg"
+            dur={C.futuro.dur}
+            foco="57% 45%"
+            manuscrita="A quem"
+            forte="faz o futuro | do campo"
+            topo={470}
+          />
+        </Sequence>
+        <Sequence
+          from={C.lei.de}
+          durationInFrames={C.lei.dur}
+          name="selo da lei"
+        >
+          <Selo />
+        </Sequence>
+        <Sequence from={C.final.de} durationInFrames={C.final.dur} name="final">
+          <Final {...props} />
+        </Sequence>
+        <LuzQuente />
+        <Clarao />
+        <MarcaDagua />
+      </AbsoluteFill>
 
       <Audio
-        src={staticFile("reel-produtor/trilha.wav")}
-        volume={volumeTrilha}
+        src={staticFile("reel-produtor/trilha-v3.wav")}
+        volume={(x) =>
+          interpolate(
+            x,
+            [0, 10, REEL_PRODUTOR_DURACAO - 20, REEL_PRODUTOR_DURACAO],
+            [0, 1, 1, 0],
+            clamp,
+          )
+        }
       />
-      {ordem.map((c) => (
-        <Sequence key={`voz-${c}`} from={LINHA[c].voz} name={`voz ${c}`}>
-          <Audio src={staticFile(`reel-produtor/voz/${c}.wav`)} />
-        </Sequence>
-      ))}
-      {ordem.map((c, i) => (
-        <Sequence
-          key={`w${c}`}
-          from={Math.max(0, LINHA[c].de - (i ? 6 : 0))}
-          durationInFrames={30}
-          name="whoosh"
-        >
-          <Audio src={staticFile("audio/r43/whoosh.wav")} volume={0.14} />
-        </Sequence>
-      ))}
-      <Sequence
-        from={LINHA.abertura.de + frase("abertura", 0) - 4}
-        durationInFrames={30}
-        name="pill"
-      >
-        <Audio src={staticFile("audio/r43/beep.wav")} volume={0.1} />
-      </Sequence>
-      <Sequence
-        from={LINHA.final.de + frase("final", 1) - 2}
-        durationInFrames={60}
-        name="parabéns"
-      >
-        <Audio src={staticFile("audio/r43/impacto_final.wav")} volume={0.18} />
-      </Sequence>
+      {[C.terra.de, C.colheita.de, C.futuro.de, C.lei.de, C.final.de].map(
+        (q) => (
+          <Sequence key={q} from={q - 4} durationInFrames={30} name="whoosh">
+            <Audio src={staticFile("audio/r43/whoosh.wav")} volume={0.1} />
+          </Sequence>
+        ),
+      )}
     </AbsoluteFill>
   );
 };

@@ -1,0 +1,31 @@
+{
+  "fps": 30,
+  "bpm": 90,
+  "total": 800,
+  "cenas": {
+    "abertura": {
+      "de": 0,
+      "dur": 176
+    },
+    "terra": {
+      "de": 160,
+      "dur": 136
+    },
+    "colheita": {
+      "de": 280,
+      "dur": 136
+    },
+    "futuro": {
+      "de": 400,
+      "dur": 136
+    },
+    "lei": {
+      "de": 520,
+      "dur": 96
+    },
+    "final": {
+      "de": 600,
+      "dur": 200
+    }
+  }
+}

@@ -164,17 +164,18 @@ de jornal e os helpers são compartilhados em `src/Materia/comum.tsx`.
 
 ## Reels "Dia do Produtor Rural" (ReelProdutor)
 
-Reels comemorativo do 10 de outubro em MS, no mesmo estilo do story: abertura
-"10 de outubro · Dia do Produtor Rural" com foto em 3D, homenagem com uma foto
-por frase da locução, menção rápida à origem da data (Lei Estadual
-nº 2.141/2000, autoria do deputado Zé Teixeira) e fechamento com a logo.
-Fundo de campo claro e desfocado, trilha alegre desde o início e logo como
-marca d'água no canto inferior direito.
+Reels comemorativo do 10 de outubro em MS, em estilo de homenagem (não é
+matéria): fotos em tela cheia com luz quente de fim de tarde, frases curtas
+("A quem cuida da terra", "planta e colhe", "faz o futuro do campo") com
+detalhe em fonte manuscrita (Dancing Script, licença OFL), selo discreto da
+Lei Estadual nº 2.141/2000 e fechamento "Parabéns, produtor rural!" com a
+logo. Sem locução; trilha emocional de piano e pads. Logo como marca d'água no
+canto inferior direito. A linha do tempo fica em `src/ReelProdutor/linha.json`
+(cenas e trilha).
 
 ```console
 # fotos e logo em public/reel-produtor/ (fora do Git)
-python scripts/gerar_voz_story.py <pasta_modelos_kokoro> src/ReelProdutor/roteiro.json
-python3 scripts/gerar_trilha_story.py src/ReelProdutor/voz.json public/reel-produtor/trilha.wav alegre
+python3 scripts/gerar_trilha_produtor.py src/ReelProdutor/linha.json public/reel-produtor/trilha-v3.wav
 npx remotion render ReelProdutor out/reel-produtor.mp4
 ```
 
