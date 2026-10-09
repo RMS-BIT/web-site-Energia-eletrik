@@ -166,7 +166,8 @@ de jornal e os helpers são compartilhados em `src/Materia/comum.tsx`.
 
 Reels comemorativo do 10 de outubro em MS, em estilo de homenagem (não é
 matéria): fotos em tela cheia com luz quente de fim de tarde, frases curtas
-("A quem cuida da terra", "planta e colhe", "faz o futuro do campo") com
+("A quem cuida da terra", "cria e produz", "faz o futuro do campo"), com duas
+fotos reais do deputado (no curral e em evento do agro), com
 detalhe em fonte manuscrita (Dancing Script, licença OFL), selo discreto da
 Lei Estadual nº 2.141/2000 e fechamento "Parabéns, produtor rural!" com a
 logo. Sem locução; trilha emocional de piano e pads. Logo como marca d'água no

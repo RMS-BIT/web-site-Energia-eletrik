@@ -4,7 +4,7 @@
 
 abertura  piano suave em acordes + pad quente
 terra     entra o arpejo do piano e o baixo
-colheita  entra a percussão leve (bumbo, chocalho, palmas) — cresce
+cria      entra a percussão leve (bumbo, chocalho, palmas) — cresce
 lei       respiro: sai a percussão, fica piano e pad; riser para o final
 final     tutti com acorde brilhante, sinos e acorde final sustentado
 
@@ -124,7 +124,7 @@ def main() -> None:
                 add(buf, piano(arpejo[[0, 1, 2, 3, 2, 1, 2, 3][k]], 1.2, 0.6), ini + k * beat / 2, 0.05)
             tb = t_axis(bar)
             add(buf, np.sin(2 * np.pi * baixo * tb) * env_adsr(len(tb), 0.02, 0.4), ini, 0.16)
-        if ini >= c["colheita"] - 0.01 and not respiro:
+        if ini >= c["cria"] - 0.01 and not respiro:
             for k in range(4):
                 add(buf, bumbo(), ini + k * beat, 0.45 if k % 2 == 0 else 0.25)
                 if k % 2:

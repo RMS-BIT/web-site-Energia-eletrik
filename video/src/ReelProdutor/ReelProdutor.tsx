@@ -63,7 +63,9 @@ const FotoCinema: React.FC<{
   foco: string;
   deriva?: number;
   topo?: number; // início da faixa nítida (px)
-}> = ({ src, dur, foco, deriva = 1, topo = 380 }) => {
+  borda?: number; // % de esfumado no topo da faixa (menor = rosto mais nítido)
+}> = ({ src, dur, foco, deriva = 1, topo = 380, borda = 16 }) => {
+  const mascara = `linear-gradient(180deg, transparent 0%, #000 ${borda}%, #000 84%, transparent 100%)`;
   const f = useCurrentFrame();
   const p = f / dur;
   return (
@@ -89,10 +91,8 @@ const FotoCinema: React.FC<{
           top: topo,
           height: 980,
           overflow: "hidden",
-          WebkitMaskImage:
-            "linear-gradient(180deg, transparent 0%, #000 16%, #000 84%, transparent 100%)",
-          maskImage:
-            "linear-gradient(180deg, transparent 0%, #000 16%, #000 84%, transparent 100%)",
+          WebkitMaskImage: mascara,
+          maskImage: mascara,
         }}
       >
         <Img
@@ -141,7 +141,7 @@ const LuzQuente: React.FC = () => {
 // clarão quente em cada troca de cena
 const Clarao: React.FC = () => {
   const f = useCurrentFrame();
-  const trocas = [C.terra.de, C.colheita.de, C.futuro.de, C.lei.de, C.final.de];
+  const trocas = [C.terra.de, C.cria.de, C.futuro.de, C.lei.de, C.final.de];
   const k = Math.max(
     ...trocas.map((q) =>
       Math.max(0, 1 - Math.abs(f - (q + TRANSICAO / 2)) / 14),
@@ -301,10 +301,31 @@ const Homenagem: React.FC<{
   forte: string;
   deriva?: number;
   topo?: number;
-}> = ({ src, dur, foco, manuscrita, forte, deriva, topo }) => (
+  borda?: number;
+  textoBaixo?: boolean; // texto abaixo do rosto (fotos com pessoas em destaque)
+}> = ({
+  src,
+  dur,
+  foco,
+  manuscrita,
+  forte,
+  deriva,
+  topo,
+  borda,
+  textoBaixo,
+}) => (
   <Cena>
-    <FotoCinema src={src} dur={dur} foco={foco} deriva={deriva} topo={topo} />
-    <AbsoluteFill style={{ alignItems: "center", paddingTop: 210 }}>
+    <FotoCinema
+      src={src}
+      dur={dur}
+      foco={foco}
+      deriva={deriva}
+      topo={topo}
+      borda={borda}
+    />
+    <AbsoluteFill
+      style={{ alignItems: "center", paddingTop: textoBaixo ? 1170 : 210 }}
+    >
       <Frase manuscrita={manuscrita} forte={forte} atraso={12} />
     </AbsoluteFill>
   </Cena>
@@ -433,7 +454,7 @@ const Final: React.FC<ReelProdutorProps> = ({ local }) => {
   return (
     <Cena>
       <FotoCinema
-        src="reel-produtor/foto-tablet.jpg"
+        src="reel-produtor/foto-soja.jpg"
         dur={C.final.dur}
         foco="57% 40%"
       />
@@ -554,18 +575,17 @@ export const ReelProdutor: React.FC<ReelProdutorProps> = (props) => {
             forte="cuida da terra"
           />
         </Sequence>
-        <Sequence
-          from={C.colheita.de}
-          durationInFrames={C.colheita.dur}
-          name="colheita"
-        >
+        <Sequence from={C.cria.de} durationInFrames={C.cria.dur} name="cria">
           <Homenagem
-            src="reel-produtor/foto-milho.jpg"
-            dur={C.colheita.dur}
-            foco="72% 50%"
+            src="reel-produtor/ze-gado.jpg"
+            dur={C.cria.dur}
+            foco="85% 50%"
             manuscrita="A quem"
-            forte="planta e colhe"
+            forte="cria e produz"
             deriva={-1}
+            topo={290}
+            borda={9}
+            textoBaixo
           />
         </Sequence>
         <Sequence
@@ -574,12 +594,14 @@ export const ReelProdutor: React.FC<ReelProdutorProps> = (props) => {
           name="futuro"
         >
           <Homenagem
-            src="reel-produtor/foto-tablet.jpg"
+            src="reel-produtor/ze-soja.jpg"
             dur={C.futuro.dur}
-            foco="57% 45%"
+            foco="62% 50%"
             manuscrita="A quem"
             forte="faz o futuro | do campo"
-            topo={470}
+            topo={290}
+            borda={9}
+            textoBaixo
           />
         </Sequence>
         <Sequence
@@ -608,13 +630,11 @@ export const ReelProdutor: React.FC<ReelProdutorProps> = (props) => {
           )
         }
       />
-      {[C.terra.de, C.colheita.de, C.futuro.de, C.lei.de, C.final.de].map(
-        (q) => (
-          <Sequence key={q} from={q - 4} durationInFrames={30} name="whoosh">
-            <Audio src={staticFile("audio/r43/whoosh.wav")} volume={0.1} />
-          </Sequence>
-        ),
-      )}
+      {[C.terra.de, C.cria.de, C.futuro.de, C.lei.de, C.final.de].map((q) => (
+        <Sequence key={q} from={q - 4} durationInFrames={30} name="whoosh">
+          <Audio src={staticFile("audio/r43/whoosh.wav")} volume={0.1} />
+        </Sequence>
+      ))}
     </AbsoluteFill>
   );
 };
