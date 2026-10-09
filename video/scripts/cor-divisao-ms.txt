@@ -1,0 +1,1 @@
+selectivecolor=reds='0 0.03 -0.10 0':yellows='0 0.02 -0.16 0':cyans='0.08 0 -0.04 0':blues='0.08 0 -0.06 0':greens='0.06 0 0.02 0',curves=master='0/0.015 0.12/0.145 0.5/0.535 0.82/0.84 0.94/0.925 1/0.965',vibrance=intensity=0.24:rbal=0.25:gbal=1.2:bbal=1.6,eq=saturation=1.03,unsharp=5:5:0.3

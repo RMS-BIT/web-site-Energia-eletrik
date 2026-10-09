@@ -49,8 +49,8 @@ const COR = {
   branco: "#FFFFFF",
 };
 
-const VIDEO = "ms/fala-4k-cine.mp4";
-const RECORTE = "ms/fala-recorte-cine.webm";
+const VIDEO = "ms/fala-4k-v3.mp4";
+const RECORTE = "ms/fala-recorte-v3.webm";
 
 // ---------- enquadramento (o mesmo para o vídeo e para o recorte) ----------
 const ROSTO = rosto.rosto as [number, number, number][];

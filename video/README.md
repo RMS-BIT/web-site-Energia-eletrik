@@ -252,8 +252,11 @@ com a logo. `Mapa3DTeste` mostra só o mapa (uno, rota, divisão, sul).
 
 ```console
 # bruto em public/ms/ (fora do Git)
-ffmpeg -i public/ms/fala-4k.mp4 -vf "curves=master='0/0 0.18/0.13 0.5/0.49 0.82/0.87 1/1',eq=saturation=1.07,colorbalance=rm=0.02:bm=-0.015:rh=0.015:bh=-0.015,unsharp=5:5:0.35" -c:v libx264 -crf 17 -an public/ms/fala-4k-grade.mp4
-python scripts/recortar_pessoa.py public/ms/fala-4k-grade.mp4 rvm_mobilenetv3_fp32.onnx public/ms/fala-recorte.webm 1080
+# cor (estilo Camera Raw: claro, azuis/verdes vivos, pele natural) — scripts/cor-divisao-ms.txt
+ffmpeg -i public/ms/fala-4k.mp4 -vf "$(cat scripts/cor-divisao-ms.txt)" -c:v libx264 -crf 17 -colorspace bt709 -color_primaries bt709 -color_trc bt709 -an public/ms/fala-4k-v3.mp4
+# máscara (RVM) e recorte com a MESMA cor; faixa "pc" (o Remotion lê o alfa como faixa cheia)
+python scripts/recortar_pessoa.py public/ms/fala-4k.mp4 rvm_mobilenetv3_fp32.onnx public/ms/fala-recorte.webm 1080
+ffmpeg -i public/ms/fala-4k.mp4 -c:v libvpx-vp9 -i public/ms/fala-recorte.webm -filter_complex "[0:v]scale=1080:1920,$(cat scripts/cor-divisao-ms.txt),format=rgba[c];[1:v]format=rgba,alphaextract,erosion,gblur=sigma=0.7[a];[c][a]alphamerge,scale=out_color_matrix=bt709:out_range=pc,format=yuva420p" -c:v libvpx-vp9 -pix_fmt yuva420p -color_range pc -colorspace bt709 public/ms/fala-recorte-v3.webm
 npx remotion render DivisaoMS3D out/divisao-ms-3d.mp4 --gl=swangle
 ```
 
