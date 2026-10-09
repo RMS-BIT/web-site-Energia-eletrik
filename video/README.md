@@ -197,12 +197,13 @@ npx remotion render ReelProdutorViral out/reel-produtor-viral.mp4
 
 ## Reels "Dia do Produtor Rural" — versão equilibrada (ReelProdutorCampo)
 
-Meio-termo entre o viral e o institucional, no padrão de um deputado
-experiente: mantém o gancho ("Se você comeu hoje, agradeça a um produtor
-rural"), as fotos do deputado, a lei e a chamada "Marque um produtor rural",
-mas com uma cena a cada compasso (≈ 2,7 s), fusões suaves, luz dourada,
-partículas de luz e texto que entra com suavidade (sem tremor nem clarão).
-Trilha de violão dedilhado (Karplus-Strong) que cresce até o final.
+Padrão de um deputado experiente, só com fotos reais do deputado: cada foto
+entra grande e se encaixa num mural 2×2 que vai se completando ao longo do
+vídeo; no final, o mural encolhe e a logo aparece embaixo, sem cobrir
+ninguém. Frases calmas (uma por compasso ≈ 2,7 s) com o gancho "Se você comeu
+hoje, agradeça a um produtor rural", a lei, a chamada "Marque um produtor
+rural" e "Parabéns, produtor rural!". Luz dourada, partículas de luz e trilha
+de violão dedilhado (Karplus-Strong) que cresce até o final.
 
 ```console
 python3 scripts/gerar_trilha_campo.py src/ReelProdutorCampo/linha.json public/reel-produtor/trilha-campo.wav
