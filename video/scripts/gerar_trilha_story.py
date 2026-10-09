@@ -7,7 +7,10 @@ final     acorde final brilhante e brilho de sinos
 
 Os tempos de cada parte vêm da linha do tempo da locução (voz.json).
 
-Uso: python3 scripts/gerar_trilha_story.py <voz.json> <saida.wav>
+Modo "alegre" (datas comemorativas): sem suspense; abre direto no acorde maior
+com arpejo e o groove começa na 2ª cena.
+
+Uso: python3 scripts/gerar_trilha_story.py <voz.json> <saida.wav> [alegre]
 """
 
 from __future__ import annotations
@@ -24,8 +27,9 @@ _linha = json.loads(Path(sys.argv[1]).read_text())
 _fps = _linha["fps"]
 _c = list(_linha["cenas"].values())  # 4 cenas, na ordem: abertura, revelação, desenvolvimento, final
 TOTAL = _linha["total"] / _fps + 0.3
-REVELA = _c[1]["de"] / _fps + 0.2
-GROOVE = _c[2]["de"] / _fps
+ALEGRE = len(sys.argv) > 3 and sys.argv[3] == "alegre"
+REVELA = 0.0 if ALEGRE else _c[1]["de"] / _fps + 0.2
+GROOVE = _c[1 if ALEGRE else 2]["de"] / _fps
 FINAL = _c[3]["de"] / _fps
 BEAT = 0.5
 rng = np.random.default_rng(14)
@@ -88,29 +92,30 @@ def main() -> None:
     out = Path(sys.argv[2])
     buf = np.zeros(int(TOTAL * SR))
 
-    # ---- suspense (Lá menor) ----
-    drone = soft_saw(55.0, REVELA + 0.4, 5) + 0.6 * soft_saw(82.41, REVELA + 0.4, 5)
-    drone = one_pole_lowpass(drone, 300 + 500 * np.linspace(0, 1, len(drone)))
-    add(buf, drone * env_adsr(len(drone), 0.8, 0.3), 0.0, 0.07)
-    trem = sum(soft_saw(f, REVELA, 6) for f in (220.0, 261.63, 329.63))
-    tt = t_axis(REVELA)
-    trem = one_pole_lowpass(trem, 1500) * (0.5 + 0.5 * np.sin(2 * np.pi * 9 * tt)) * np.linspace(0.2, 1, len(tt)) ** 2
-    add(buf, trem, 0.0, 0.03)
-    for k in range(int(REVELA / 0.75)):  # batimento grave
-        add(buf, bumbo(0.7), 0.3 + k * 0.75, 0.45)
-    for k in range(int(REVELA / 0.25)):  # tique-taque
-        t = t_axis(0.03)
-        tick = sine(3200 if k % 2 else 2400, 0.03) * np.exp(-t * 150)
-        add(buf, tick, k * 0.25, 0.05)
-    # riser + impacto
-    dur_r = 1.6
-    tr = t_axis(dur_r)
-    p = tr / dur_r
-    riser = one_pole_lowpass(ruido(dur_r), 300 + 9000 * p**2) * p**2 + 0.3 * sine(300 + 1500 * p**2, dur_r) * p**3
-    add(buf, riser / np.abs(riser).max(), REVELA - dur_r, 0.25)
-    ti = t_axis(2.0)
-    impacto = sine(32 + 70 * np.exp(-ti * 8), 2.0) * np.exp(-ti * 2) + one_pole_lowpass(ruido(2.0), 1500) * np.exp(-ti * 8)
-    add(buf, eco(impacto / np.abs(impacto).max(), 0.2, 0.25), REVELA, 0.6)
+    if not ALEGRE:
+        # ---- suspense (Lá menor) ----
+        drone = soft_saw(55.0, REVELA + 0.4, 5) + 0.6 * soft_saw(82.41, REVELA + 0.4, 5)
+        drone = one_pole_lowpass(drone, 300 + 500 * np.linspace(0, 1, len(drone)))
+        add(buf, drone * env_adsr(len(drone), 0.8, 0.3), 0.0, 0.07)
+        trem = sum(soft_saw(f, REVELA, 6) for f in (220.0, 261.63, 329.63))
+        tt = t_axis(REVELA)
+        trem = one_pole_lowpass(trem, 1500) * (0.5 + 0.5 * np.sin(2 * np.pi * 9 * tt)) * np.linspace(0.2, 1, len(tt)) ** 2
+        add(buf, trem, 0.0, 0.03)
+        for k in range(int(REVELA / 0.75)):  # batimento grave
+            add(buf, bumbo(0.7), 0.3 + k * 0.75, 0.45)
+        for k in range(int(REVELA / 0.25)):  # tique-taque
+            t = t_axis(0.03)
+            tick = sine(3200 if k % 2 else 2400, 0.03) * np.exp(-t * 150)
+            add(buf, tick, k * 0.25, 0.05)
+        # riser + impacto
+        dur_r = 1.6
+        tr = t_axis(dur_r)
+        p = tr / dur_r
+        riser = one_pole_lowpass(ruido(dur_r), 300 + 9000 * p**2) * p**2 + 0.3 * sine(300 + 1500 * p**2, dur_r) * p**3
+        add(buf, riser / np.abs(riser).max(), REVELA - dur_r, 0.25)
+        ti = t_axis(2.0)
+        impacto = sine(32 + 70 * np.exp(-ti * 8), 2.0) * np.exp(-ti * 2) + one_pole_lowpass(ruido(2.0), 1500) * np.exp(-ti * 8)
+        add(buf, eco(impacto / np.abs(impacto).max(), 0.2, 0.25), REVELA, 0.6)
 
     # ---- resolução em Ré maior + arpejo (foto) ----
     D = [146.83, 220.0, 293.66, 369.99, 440.0]

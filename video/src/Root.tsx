@@ -130,7 +130,7 @@ export const RemotionRoot: React.FC = () => {
         defaultProps={storyPadrao}
       />
       <Composition
-        // Reels "Dia do Produtor Rural" (10/10, MS) em formato de matéria:
+        // Reels comemorativo "Dia do Produtor Rural" (10/10, MS):
         // npx remotion render ReelProdutor out/reel-produtor.mp4
         id="ReelProdutor"
         component={ReelProdutor}

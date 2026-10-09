@@ -2,33 +2,32 @@
   "saida_audio": "public/reel-produtor/voz",
   "metadados": "src/ReelProdutor/voz.json",
   "cenas": {
-    "titulo": {
-      "ritmo": [10, 6, 14],
+    "abertura": {
+      "ritmo": [12, 8, 12],
       "frases": [
-        ["Você sabe por que o dez de outubro é tão especial no campo?", 0.6],
-        ["Em Mato Grosso do Sul, o Dia Estadual do Produtor Rural é celebrado todo dia dez de outubro.", 0.5]
-      ]
-    },
-    "documento": {
-      "ritmo": [12, 8, 10],
-      "frases": [
-        ["A data foi criada por lei estadual, em agosto de dois mil.", 0.4],
-        ["Uma lei de autoria do deputado Zé Teixeira.", 0.55]
+        ["Dez de outubro.", 0.45],
+        ["Em Mato Grosso do Sul, é Dia do Produtor Rural.", 0.5]
       ]
     },
     "homenagem": {
-      "ritmo": [10, 10, 8],
+      "ritmo": [10, 10, 10],
       "frases": [
-        ["Uma homenagem aos homens e mulheres do campo,", 0.2],
+        ["Dia de homenagear os homens e mulheres do campo,", 0.2],
         ["que, com o suor do rosto, produzem alimento,", 0.2],
         ["e movem a economia sul-mato-grossense.", 0.5]
+      ]
+    },
+    "origem": {
+      "ritmo": [10, 10, 10],
+      "frases": [
+        ["A data foi criada por lei estadual, de autoria do deputado Zé Teixeira.", 0.55]
       ]
     },
     "final": {
       "ritmo": [14, 50, 0],
       "frases": [
-        ["Dez de outubro. Dia do Produtor Rural.", 0.4],
-        ["Parabéns a todos os produtores rurais de Mato Grosso do Sul.", 0.6]
+        ["A todos que plantam, criam e produzem em Mato Grosso do Sul:", 0.3],
+        ["parabéns, produtor rural!", 0.7]
       ]
     }
   }

@@ -2,48 +2,47 @@
   "voz": "pf_dora",
   "velocidade": 1.06,
   "fps": 30,
-  "total": 1021,
+  "total": 798,
   "cenas": {
-    "titulo": {
-      "duracao": 9.757,
+    "abertura": {
+      "duracao": 4.713,
       "frases": [
         0.0,
-        3.862
+        1.568
       ],
       "de": 0,
-      "dur": 309,
-      "voz": 10
-    },
-    "documento": {
-      "duracao": 6.563,
-      "frases": [
-        0.0,
-        3.524
-      ],
-      "de": 295,
-      "dur": 217,
-      "voz": 307
+      "dur": 161,
+      "voz": 12
     },
     "homenagem": {
-      "duracao": 8.22,
+      "duracao": 8.369,
       "frases": [
         0.0,
-        2.749,
-        5.396
+        2.899,
+        5.545
       ],
-      "de": 502,
-      "dur": 267,
-      "voz": 512
+      "de": 149,
+      "dur": 271,
+      "voz": 159
+    },
+    "origem": {
+      "duracao": 4.624,
+      "frases": [
+        0.0
+      ],
+      "de": 410,
+      "dur": 159,
+      "voz": 420
     },
     "final": {
-      "duracao": 6.534,
+      "duracao": 5.844,
       "frases": [
         0.0,
-        2.537
+        3.523
       ],
-      "de": 761,
-      "dur": 260,
-      "voz": 775
+      "de": 559,
+      "dur": 239,
+      "voz": 573
     }
   }
 }
