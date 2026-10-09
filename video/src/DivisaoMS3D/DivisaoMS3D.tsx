@@ -90,7 +90,7 @@ const transforma = (q: Quadro) =>
   `translate(${q.tx}px, ${q.ty}px) scale(${q.s})`;
 
 // ---------- trechos explicativos (mapa 3D + recorte) ----------
-type Foto = "estrada" | "soja" | "gado";
+type Foto = "estrada" | "colheita" | "soja" | "gado";
 type Trecho = { modo: ModoMapa3D | Foto; de: number; ate: number };
 type Grupo = { de: number; ate: number; trechos: Trecho[] };
 const GRUPOS: Grupo[] = [
@@ -105,9 +105,11 @@ const GRUPOS: Grupo[] = [
     ],
   },
   {
-    de: 47.99,
+    de: 45.56,
     ate: 62.8,
     trechos: [
+      // "...que é o agronegócio": imagem de corte, sem o apresentador
+      { modo: "colheita", de: 45.56, ate: 47.99 },
       { modo: "soja", de: 47.99, ate: 56.85 },
       { modo: "sul", de: 56.85, ate: 60.1 },
       { modo: "gado", de: 60.1, ate: 62.8 },
@@ -165,7 +167,8 @@ const FundoMapa: React.FC = () => {
 // pessoas) com tratamento para casar com o vídeo: menos saturação e laranja
 const FOTOS: Record<Foto, { src: string; foco: string; zoom: [number, number] }> = {
   estrada: { src: "ms/fundos/estrada.png", foco: "50% 47%", zoom: [1.04, 1.32] },
-  soja: { src: "ms/fundos/soja.png", foco: "50% 46%", zoom: [1.04, 1.16] },
+  colheita: { src: "ms/fundos/colheita.png", foco: "58% 62%", zoom: [1.03, 1.14] },
+  soja: { src: "ms/fundos/soja.png", foco: "62% 40%", zoom: [1.04, 1.16] },
   gado: { src: "ms/fundos/gado.png", foco: "40% 60%", zoom: [1.06, 1.14] },
 };
 const ehFoto = (m: Trecho["modo"]): m is Foto => m in FOTOS;
@@ -309,8 +312,14 @@ const Apresentador: React.FC<{ g: Grupo }> = ({ g }) => {
     fps,
     config: { damping: 22, stiffness: 120 },
   });
-  const m = Math.min(1, ida) * (1 - Math.min(1, volta));
+  // grupo que abre com imagem de corte: ele só entra (já no canto) depois
+  const corte = g.trechos[0].modo === "colheita";
+  const entra = corte ? o(g.trechos[1].de) - o(g.de) : 0;
+  const vis = corte ? ent(f, entra, entra + 16) : 1;
+  if (vis <= 0) return null;
+  const m = (corte ? 1 : Math.min(1, ida)) * (1 - Math.min(1, volta));
   const q = mistura(enquadra(src), canto(g), m);
+  q.tx += (1 - vis) * 120;
   // luz de borda da cena: fria no mapa, quente nas fotos de fim de tarde
   const quente = g.trechos.reduce((acc, t) => {
     const a = o(t.de) - o(g.de);
@@ -321,7 +330,7 @@ const Apresentador: React.FC<{ g: Grupo }> = ({ g }) => {
   const borda = quente > 0.5 ? "255,196,130" : "150,200,255";
   const sombra = 0.55 - 0.25 * quente;
   return (
-    <AbsoluteFill style={{ overflow: "hidden" }}>
+    <AbsoluteFill style={{ overflow: "hidden", opacity: vis }}>
       <AbsoluteFill
         style={{ transformOrigin: "0 0", transform: transforma(q) }}
       >
