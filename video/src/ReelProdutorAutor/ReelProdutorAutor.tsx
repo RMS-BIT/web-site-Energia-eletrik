@@ -24,7 +24,7 @@ import linha from "./linha.json";
 // (~3 palavras/s + respiro).
 // Lei Estadual nº 2.141, de 28/08/2000 (DOE nº 5.338); autoria confirmada
 // pela equipe em 09/10/2026 (fonte original: zeteixeira.com, 10/10/2017).
-// Trilha: viola caipira (scripts/gerar_trilha_viola.py).
+// Trilha: pagode de viola (scripts/gerar_trilha_pagode.py).
 // "Há 26 anos": de 28/08/2000 a 10/10/2026.
 // Fotos do deputado apenas enquadradas e reposicionadas (sem alterar pessoas).
 
@@ -590,7 +590,7 @@ export const ReelProdutorAutor: React.FC = () => {
         <MarcaDagua />
       </AbsoluteFill>
       <Audio
-        src={staticFile("reel-produtor/trilha-viola.wav")}
+        src={staticFile("reel-produtor/trilha-pagode.wav")}
         volume={(x) =>
           interpolate(
             x,
