@@ -214,12 +214,14 @@ npx remotion render ReelProdutorCampo out/reel-produtor-campo.mp4
 
 ## Reels "Dia do Produtor Rural" — versão definitiva (ReelProdutorAutor)
 
-Estratégia "a data tem autor" (17 s): gancho de curiosidade ("O Dia do
-Produtor Rural em MS tem autor."), revelação da autoria logo no início (Lei
-Estadual nº 2.141/2000, deputado Zé Teixeira), o produtor como herói no texto
-("Uma homenagem a quem planta, cria e colhe", "Há 26 anos…"), chamada "Marque
-um produtor rural" e assinatura com o deputado, a data e a logo pequena. Só
-fotos reais do deputado; trilha de violão retemporizada para 17 s.
+Junta o roteiro "a data tem autor" com o visual em camadas 3D: gancho de
+curiosidade ("O Dia do Produtor Rural em MS tem autor."), autoria da Lei
+Estadual nº 2.141/2000 logo no início, o produtor como herói no texto
+("planta, cria e colhe", "Há 26 anos…"), chamada "Marque um produtor rural"
+e final com a logo grande em 3D e "10 de outubro · Dia do Produtor Rural".
+As fotos do deputado se empilham em camadas (a nova na frente, as anteriores
+recuam desfocadas) e no final se abrem ao fundo. Cada frase fica na tela o
+tempo de leitura (~3 palavras/s + respiro); 26 s no total.
 
 ```console
 python3 scripts/gerar_trilha_campo.py src/ReelProdutorAutor/linha.json public/reel-produtor/trilha-autor.wav
