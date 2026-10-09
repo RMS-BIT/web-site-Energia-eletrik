@@ -231,6 +231,21 @@ python3 scripts/gerar_trilha_pagode.py src/ReelProdutorAutor/linha.json public/r
 npx remotion render ReelProdutorAutor out/reel-produtor-autor.mp4
 ```
 
+## "49 anos da divisão de MS" em 3D (DivisaoMS3D)
+
+Mesma fala do reel DivisaoMS, reeditada em 3D: o deputado é recortado do fundo
+(Robust Video Matting, sem gerar nem alterar pessoas) e colocado sobre um mapa
+3D de MS (contornos reais, com espessura e chão quadriculado), numa estrada
+até Cuiabá (perspectiva, faixas passando, placa) e numa lavoura. Textos
+digitados com som de tecla, "49" gigante em 3D, contador de km sincronizado com
+a fala, sombra no chão e atrás dele, legendas, trilha com "ducking".
+
+```console
+# bruto em public/ms/ (fora do Git)
+python scripts/recortar_pessoa.py public/ms/fala-4k-cor.mp4 rvm_mobilenetv3_fp32.onnx public/ms/fala-recorte.webm 1080
+npx remotion render DivisaoMS3D out/divisao-ms-3d.mp4
+```
+
 ## Docs
 
 Get started with Remotion by reading the [fundamentals page](https://www.remotion.dev/docs/the-fundamentals).

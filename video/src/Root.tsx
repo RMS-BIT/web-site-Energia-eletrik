@@ -11,6 +11,7 @@ import { Roteiro43, r43Padrao, r43Schema } from "./Roteiro43/Roteiro43";
 import { DURACAO as DURACAO_R43 } from "./Roteiro43/timeline";
 import { DivisaoMS, divisaoPadrao, divisaoSchema } from "./DivisaoMS/DivisaoMS";
 import { DURACAO as DURACAO_MS } from "./DivisaoMS/edicao";
+import { DIVISAO3D_DURACAO, DivisaoMS3D } from "./DivisaoMS3D/DivisaoMS3D";
 import {
   STORY_DURACAO,
   StoryMateria,
@@ -133,6 +134,16 @@ export const RemotionRoot: React.FC = () => {
         height={1920}
         schema={divisaoSchema}
         defaultProps={divisaoPadrao}
+      />
+      <Composition
+        // "49 anos da divisão de MS" — versão animada em 3D (orador recortado):
+        // npx remotion render DivisaoMS3D out/divisao-ms-3d.mp4
+        id="DivisaoMS3D"
+        component={DivisaoMS3D}
+        durationInFrames={DIVISAO3D_DURACAO}
+        fps={FPS}
+        width={1080}
+        height={1920}
       />
       <Composition
         // Story animado de matéria (utilidade pública):
