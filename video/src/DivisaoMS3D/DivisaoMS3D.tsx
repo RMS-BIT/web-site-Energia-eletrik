@@ -90,7 +90,8 @@ const transforma = (q: Quadro) =>
   `translate(${q.tx}px, ${q.ty}px) scale(${q.s})`;
 
 // ---------- trechos explicativos (mapa 3D + recorte) ----------
-type Trecho = { modo: ModoMapa3D; de: number; ate: number };
+type Foto = "estrada" | "soja" | "gado";
+type Trecho = { modo: ModoMapa3D | Foto; de: number; ate: number };
 type Grupo = { de: number; ate: number; trechos: Trecho[] };
 const GRUPOS: Grupo[] = [
   { de: 13.36, ate: 16.3, trechos: [{ modo: "uno", de: 13.36, ate: 16.3 }] },
@@ -98,11 +99,20 @@ const GRUPOS: Grupo[] = [
     de: 23.65,
     ate: 38.05,
     trechos: [
-      { modo: "rota", de: 23.65, ate: 29.73 },
+      { modo: "estrada", de: 23.65, ate: 25.3 },
+      { modo: "rota", de: 25.3, ate: 29.73 },
       { modo: "divisao", de: 29.73, ate: 38.05 },
     ],
   },
-  { de: 56.85, ate: 62.8, trechos: [{ modo: "sul", de: 56.85, ate: 62.8 }] },
+  {
+    de: 47.99,
+    ate: 62.8,
+    trechos: [
+      { modo: "soja", de: 47.99, ate: 56.85 },
+      { modo: "sul", de: 56.85, ate: 60.1 },
+      { modo: "gado", de: 60.1, ate: 62.8 },
+    ],
+  },
 ];
 const SAI = 16; // quadros da volta mapa -> vídeo
 
@@ -151,6 +161,68 @@ const FundoMapa: React.FC = () => {
   );
 };
 
+// imagens de apoio (geradas no Higgsfield pelo operador; só paisagem, sem
+// pessoas) com tratamento para casar com o vídeo: menos saturação e laranja
+const FOTOS: Record<Foto, { src: string; foco: string; zoom: [number, number] }> = {
+  estrada: { src: "ms/fundos/estrada.png", foco: "50% 47%", zoom: [1.04, 1.32] },
+  soja: { src: "ms/fundos/soja.png", foco: "50% 46%", zoom: [1.04, 1.16] },
+  gado: { src: "ms/fundos/gado.png", foco: "40% 60%", zoom: [1.06, 1.14] },
+};
+const ehFoto = (m: Trecho["modo"]): m is Foto => m in FOTOS;
+
+const CenaFoto: React.FC<{ tipo: Foto; dur: number }> = ({ tipo, dur }) => {
+  const f = useCurrentFrame();
+  const c = FOTOS[tipo];
+  const z = interpolate(f, [0, dur + 12], c.zoom, clamp);
+  return (
+    <AbsoluteFill style={{ overflow: "hidden" }}>
+      <Img
+        src={staticFile(c.src)}
+        style={{
+          width: 1080,
+          height: 1920,
+          objectFit: "cover",
+          transformOrigin: c.foco,
+          transform: `scale(${z})`,
+          filter: "saturate(0.78) contrast(1.05) brightness(0.9) sepia(0.06)",
+        }}
+      />
+      <AbsoluteFill
+        style={{
+          background:
+            "linear-gradient(180deg, rgba(6,26,46,0.45) 0%, rgba(6,26,46,0) 28%, rgba(0,0,0,0) 62%, rgba(6,20,30,0.45) 100%)",
+        }}
+      />
+    </AbsoluteFill>
+  );
+};
+
+// folhas de soja em primeiro plano, NA FRENTE do deputado (profundidade)
+const FrenteSoja: React.FC<{ g: Grupo }> = ({ g }) => {
+  const f = useCurrentFrame();
+  const t = g.trechos.find((x) => x.modo === "soja");
+  if (!t) return null;
+  const de = o(t.de) - o(g.de);
+  const ate = o(t.ate) - o(g.de);
+  if (f < de || f > ate + 12) return null;
+  const op = ent(f, de + 6, de + 24) * (1 - ent(f, ate - 2, ate + 12));
+  return (
+    <AbsoluteFill style={{ opacity: op, overflow: "hidden" }}>
+      <Img
+        src={staticFile("ms/fundos/soja-frente.png")}
+        style={{
+          position: "absolute",
+          width: 1700,
+          height: 1133,
+          left: -300 - (f - de) * 0.5,
+          top: 1920 - 1133 + 330 - ent(f, de, de + 30) * 60,
+          filter: "blur(2px) saturate(0.8) brightness(0.85)",
+        }}
+      />
+    </AbsoluteFill>
+  );
+};
+
 const AJUSTE: Record<ModoMapa3D, [number, number]> = {
   uno: [-120, -90],
   rota: [-110, -110],
@@ -165,6 +237,12 @@ const TrechoMapa: React.FC<{ t: Trecho; dur: number; primeiro: boolean }> = ({
 }) => {
   const f = useCurrentFrame();
   const op = primeiro ? 1 : ent(f, 0, 12);
+  if (ehFoto(t.modo))
+    return (
+      <AbsoluteFill style={{ opacity: op }}>
+        <CenaFoto tipo={t.modo} dur={dur} />
+      </AbsoluteFill>
+    );
   const [dx, dy] = AJUSTE[t.modo];
   const ini = o(t.de);
   return (
@@ -233,6 +311,15 @@ const Apresentador: React.FC<{ g: Grupo }> = ({ g }) => {
   });
   const m = Math.min(1, ida) * (1 - Math.min(1, volta));
   const q = mistura(enquadra(src), canto(g), m);
+  // luz de borda da cena: fria no mapa, quente nas fotos de fim de tarde
+  const quente = g.trechos.reduce((acc, t) => {
+    const a = o(t.de) - o(g.de);
+    const b = o(t.ate) - o(g.de);
+    const dentro = ent(f, a - 6, a + 6) * (1 - ent(f, b - 6, b + 6));
+    return acc + (ehFoto(t.modo) ? dentro : 0);
+  }, 0);
+  const borda = quente > 0.5 ? "255,196,130" : "150,200,255";
+  const sombra = 0.55 - 0.25 * quente;
   return (
     <AbsoluteFill style={{ overflow: "hidden" }}>
       <AbsoluteFill
@@ -249,9 +336,9 @@ const Apresentador: React.FC<{ g: Grupo }> = ({ g }) => {
             // luz de borda fria (integra o recorte à luz do mapa) + sombra
             // projetada atrás dele; ajuste leve de cor para o ambiente azul
             filter:
-              `drop-shadow(0 0 ${3 * m}px rgba(150,200,255,${0.45 * m})) ` +
-              `drop-shadow(${-34 * m}px ${10 * m}px ${44 * m}px rgba(0,8,20,${0.55 * m})) ` +
-              `brightness(${1 - 0.03 * m}) contrast(${1 + 0.04 * m}) saturate(${1 - 0.06 * m})`,
+              `drop-shadow(0 0 ${3 * m}px rgba(${borda},${0.45 * m})) ` +
+              `drop-shadow(${-34 * m}px ${10 * m}px ${44 * m}px rgba(0,8,20,${sombra * m})) ` +
+              `brightness(${1 - 0.03 * m}) contrast(${1 + 0.04 * m}) saturate(${1 - 0.06 * m}) sepia(${0.08 * quente * m})`,
           }}
         />
       </AbsoluteFill>
@@ -376,8 +463,8 @@ const DIGITADOS: Digitado[] = [
   { de: o(34.0), ate: o(38.05) - 4, texto: "DOIS ESTADOS", y: 150, tam: 84, esq: true, sublinha: true },
   { de: o(38.3), ate: o(42.0), texto: "DOIS IRMÃOS", y: 200, tam: 96, cor: COR.amarelo, sublinha: true },
   { de: o(46.6), ate: o(48.0), texto: "AGRONEGÓCIO", y: 200, tam: 96, cor: COR.amarelo },
-  { de: o(48.3), ate: o(53.6), texto: "TERRAS FÉRTEIS", y: 200, tam: 90, sublinha: true },
-  { de: o(57.1), ate: o(62.8) - 4, texto: "AQUI NO SUL", y: 150, tam: 92, esq: true, cor: COR.amarelo, sublinha: true },
+  { de: o(48.3), ate: o(53.6), texto: "TERRAS FÉRTEIS", y: 150, tam: 84, esq: true, sublinha: true },
+  { de: o(57.1), ate: o(60.1), texto: "AQUI NO SUL", y: 150, tam: 92, esq: true, cor: COR.amarelo, sublinha: true },
   { de: o(63.11), ate: o(68.7), texto: "MATO GROSSO DO SUL", y: 175, tam: 62 },
   { de: o(75.4), ate: FIM_FALA, texto: "DIAS MELHORES", y: 200, tam: 90, cor: COR.verdeClaro, sublinha: true },
 ];
@@ -627,12 +714,24 @@ const Cartao: React.FC = () => {
   const H = Math.round((W * 474) / 844);
   return (
     <AbsoluteFill>
-      <AbsoluteFill
-        style={{
-          opacity: fundo,
-          background: `radial-gradient(ellipse at 50% 40%, ${COR.azulMedio} 0%, ${COR.marinho} 52%, ${COR.noite} 100%)`,
-        }}
-      />
+      <AbsoluteFill style={{ opacity: fundo, overflow: "hidden" }}>
+        {/* Pantanal (MT e MS dividem o bioma): fundo desfocado e escurecido */}
+        <Img
+          src={staticFile("ms/fundos/pantanal.png")}
+          style={{
+            width: 1080,
+            height: 1920,
+            objectFit: "cover",
+            transform: `scale(${1.12 + f * 0.0008})`,
+            filter: "blur(7px) saturate(0.7) brightness(0.75)",
+          }}
+        />
+        <AbsoluteFill
+          style={{
+            background: `radial-gradient(ellipse at 50% 42%, rgba(27,95,142,0.55) 0%, rgba(13,53,90,0.82) 55%, rgba(6,26,46,0.95) 100%)`,
+          }}
+        />
+      </AbsoluteFill>
       <AbsoluteFill style={{ perspective: 1400, alignItems: "center" }}>
         <div
           style={{
@@ -774,6 +873,7 @@ export const DivisaoMS3D: React.FC = () => {
         >
           <CenaMapa g={g} />
           <Apresentador g={g} />
+          <FrenteSoja g={g} />
         </Sequence>
       ))}
       <Contador de={ROTA.de} ate={ROTA.ate} fim={ROTA.fim} />
