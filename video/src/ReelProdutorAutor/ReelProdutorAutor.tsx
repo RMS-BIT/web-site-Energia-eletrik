@@ -37,8 +37,8 @@ loadFont({
 
 const M = linha.marcas;
 export const AUTOR_DURACAO = linha.total;
-const LOGO = "reel-produtor/logo-ze-verde.png";
-const LOGO_PROP = 478 / 850;
+const LOGO = "reel-produtor/logo-ze-rosa.png";
+const LOGO_PROP = 538 / 976; // altura / largura
 const COR = { amarelo: "#F6D54A", branco: "#FFFFFF" };
 const SOMBRA = "0 4px 22px rgba(0,0,0,0.7), 0 2px 5px rgba(0,0,0,0.55)";
 
