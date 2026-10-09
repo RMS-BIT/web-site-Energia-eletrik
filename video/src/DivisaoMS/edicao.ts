@@ -108,30 +108,51 @@ const lerMarcacao = (texto: string): Palavra[] => {
   return out;
 };
 
-// Divide cada fala em blocos de até 2 linhas, cortando de preferência na pontuação.
+// Divide cada fala em blocos de até 2 linhas. A quebra é escolhida para:
+// equilibrar o tamanho, preferir pontuação, nunca separar um destaque nem
+// nomes como "Mato Grosso do Sul" e evitar terminar em palavra de ligação.
+const LIGACAO = new Set(["de", "do", "da", "dos", "das", "o", "a", "os", "as", "e", "em", "no", "na", "nas", "nos", "para", "que", "pelas", "nossas", "um", "à", "mas"]);
+const NAO_QUEBRAR_ANTES = new Set(["Grosso", "Sul", "do", "quilômetros", "irmãos", "férteis", "melhores", "prósperos"]);
+const MAX = 38;
+
+const melhorQuebra = (ps: Palavra[]): number => {
+  const tam = (a: number, b: number) => ps.slice(a, b).reduce((n, p) => n + p.texto.length + 1, 0);
+  const total = tam(0, ps.length);
+  let melhor = -1;
+  let nota = -Infinity;
+  for (let i = 1; i < ps.length; i++) {
+    const esq = tam(0, i);
+    const dir = total - esq;
+    let n = -Math.abs(esq - dir) / 6;
+    const ultima = ps[i - 1].texto;
+    if (/[,.:?!]$/.test(ultima)) n += 5;
+    if (ps[i - 1].cor !== "branco" && ps[i].cor === ps[i - 1].cor) n -= 30; // dentro do destaque
+    if (LIGACAO.has(ultima.toLowerCase().replace(/[,.:?!]/g, ""))) n -= 8;
+    if (NAO_QUEBRAR_ANTES.has(ps[i].texto.replace(/[,.:?!]/g, ""))) n -= 12;
+    if (esq > MAX + 6 || dir > MAX + 6) n -= 20;
+    if (n > nota) {
+      nota = n;
+      melhor = i;
+    }
+  }
+  return melhor;
+};
+
+const dividir = (ps: Palavra[], ini: number): number[][] => {
+  const tam = ps.reduce((n, p) => n + p.texto.length + 1, 0);
+  if (tam <= MAX || ps.length < 3) return [ps.map((_, i) => ini + i)];
+  const q = melhorQuebra(ps);
+  return [...dividir(ps.slice(0, q), ini), ...dividir(ps.slice(q), ini + q)];
+};
+
 export const BLOCOS_LEGENDA: Bloco[] = (() => {
   const blocos: Bloco[] = [];
   for (const [a, b, texto] of FALAS) {
     const palavras = lerMarcacao(texto);
     const pesos = palavras.map((p) => Math.max(2, p.texto.replace(/\W/g, "").length) + 1.2);
     const total = pesos.reduce((s, x) => s + x, 0);
-    const grupos: number[][] = [[]];
-    let letras = 0;
-    palavras.forEach((p, i) => {
-      const g = grupos[grupos.length - 1];
-      if (g.length && (letras + p.texto.length > 40 || g.length >= 7)) {
-        grupos.push([]);
-        letras = 0;
-      }
-      grupos[grupos.length - 1].push(i);
-      letras += p.texto.length + 1;
-      if (/[.?!:]$/.test(p.texto) && i < palavras.length - 1 && letras > 12) {
-        grupos.push([]);
-        letras = 0;
-      }
-    });
     let t = a;
-    for (const g of grupos.filter((x) => x.length)) {
+    for (const g of dividir(palavras, 0)) {
       const d = ((b - a) * g.reduce((s, i) => s + pesos[i], 0)) / total;
       blocos.push({ de: paraSaida(t), ate: paraSaida(t + d), palavras: g.map((i) => palavras[i]) });
       t += d;
