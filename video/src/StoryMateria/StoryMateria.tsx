@@ -122,25 +122,25 @@ const CartaoMateria: React.FC<StoryProps> = ({ titulo, editoria, fonte }) => {
   const sai = ent(f, 136, 156);
   const marca = ent(f, iniLeitura + 6 * passo, iniLeitura + 12 * passo);
   return (
-    <AbsoluteFill style={{ perspective: 1400, alignItems: "center", justifyContent: "center", paddingBottom: 120 }}>
+    <AbsoluteFill style={{ perspective: 1400, alignItems: "center", justifyContent: "center", paddingBottom: 20 }}>
       <div
         style={{
-          width: 880,
-          padding: "64px 64px 56px",
+          width: 930,
+          padding: "72px 66px 60px",
           borderRadius: 32,
           background: COR.papel,
           fontFamily: FONTE,
           boxShadow: "0 60px 120px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.6) inset",
-          transform: `translateZ(${z + sai * 300}px) translateY(${desce - sai * 900}px) rotateX(${rotX + sai * 30}deg) rotateY(${rotY}deg) rotateZ(${rotZ}deg)`,
+          transform: `translateX(30px) translateZ(${z + sai * 300}px) translateY(${desce - sai * 900}px) rotateX(${rotX + sai * 30}deg) rotateY(${rotY}deg) rotateZ(${rotZ}deg)`,
           opacity: Math.min(1, chega * 2) * (1 - sai * 0.9),
           transformStyle: "preserve-3d",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 30 }}>
           <div style={{ width: 12, height: 12, borderRadius: 6, background: COR.rosa }} />
-          <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: 5, color: COR.rosa, textTransform: "uppercase" }}>{editoria}</div>
+          <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: 6, color: COR.rosa, textTransform: "uppercase" }}>{editoria}</div>
         </div>
-        <div style={{ fontSize: 74, lineHeight: 1.08, fontWeight: 800, color: COR.tinta, letterSpacing: -1.5 }}>
+        <div style={{ fontSize: 84, lineHeight: 1.06, fontWeight: 800, color: COR.tinta, letterSpacing: -2 }}>
           {palavras.map((p, i) => {
             const k = Math.max(0, Math.min(1, lido - i + 1));
             const ehDestaque = DESTAQUE.includes(p);
@@ -178,78 +178,125 @@ const CartaoMateria: React.FC<StoryProps> = ({ titulo, editoria, fonte }) => {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 16, marginTop: 40, opacity: ent(f, 90, 110) }}>
           <div style={{ width: 40, height: 2, background: COR.tinta, opacity: 0.4 }} />
-          <div style={{ fontSize: 26, fontWeight: 600, color: "#5A6B80", letterSpacing: 1 }}>{fonte}</div>
+          <div style={{ fontSize: 30, fontWeight: 600, color: "#5A6B80", letterSpacing: 1 }}>{fonte}</div>
         </div>
       </div>
     </AbsoluteFill>
   );
 };
 
-// ---------- Cena 2: foto em moldura 3D com paralaxe ----------
+// ---------- Cena 2: foto em moldura 3D, com manchete e informações ----------
 const Foto: React.FC<{ local: string; dur: number }> = ({ local, dur }) => {
   const f = useCurrentFrame();
   const { fps } = useVideoConfig();
   const entra = spring({ frame: f, fps, config: { damping: 20, stiffness: 70 } });
   const sai = ent(f, dur - 14, dur);
   const p = f / dur;
-  const rotY = interpolate(entra, [0, 1], [35, 0]) + Math.sin(p * Math.PI) * -6 - sai * 30;
-  const rotX = interpolate(entra, [0, 1], [-20, 4]) + sai * 10;
-  const zoom = 1.02 + p * 0.1;
+  const rotY = interpolate(entra, [0, 1], [30, 0]) + Math.sin(p * Math.PI) * -4 - sai * 25;
+  const rotX = interpolate(entra, [0, 1], [-18, 3]) + sai * 8;
+  const zoom = 1.04 + p * 0.1;
+  const brilho = interpolate(f, [16, 76], [-30, 130], clamp);
+  const t1 = ent(f, 8, 26);
+  const t2 = ent(f, 20, 38);
   return (
-    <AbsoluteFill style={{ opacity: 1 - sai }}>
+    <AbsoluteFill style={{ opacity: 1 - sai, fontFamily: FONTE, color: COR.branco }}>
       <AbsoluteFill style={{ opacity: entra }}>
         <Img
           src={staticFile("story/hospital.jpg")}
-          style={{ width: "100%", height: "100%", objectFit: "cover", filter: "blur(36px) brightness(0.55) saturate(1.1)", transform: "scale(1.2)" }}
+          style={{ width: "100%", height: "100%", objectFit: "cover", filter: "blur(30px) brightness(0.5) saturate(1.15)", transform: "scale(1.25)" }}
         />
-        <AbsoluteFill style={{ background: "linear-gradient(180deg, rgba(7,27,48,0.4), rgba(7,27,48,0.15) 40%, rgba(7,27,48,0.7))" }} />
+        <AbsoluteFill style={{ background: "linear-gradient(180deg, rgba(7,27,48,0.75) 0%, rgba(7,27,48,0.25) 35%, rgba(7,27,48,0.25) 62%, rgba(7,27,48,0.85) 100%)" }} />
       </AbsoluteFill>
-      <AbsoluteFill style={{ perspective: 1500, alignItems: "center", justifyContent: "center", paddingBottom: 140 }}>
+      {/* manchete-resumo */}
+      <AbsoluteFill style={{ alignItems: "center", paddingTop: 290, textAlign: "center" }}>
+        <div style={{ opacity: t1, transform: `translateY(${(1 - t1) * 24}px)` }}>
+          <div style={{ display: "flex", justifyContent: "center", gap: 14, fontSize: 26, fontWeight: 700, letterSpacing: 5 }}>
+            <span style={{ color: COR.rosa }}>OUTUBRO ROSA</span>
+            <span style={{ opacity: 0.6 }}>+</span>
+            <span style={{ color: COR.azul }}>NOVEMBRO AZUL</span>
+          </div>
+          <div style={{ fontSize: 76, fontWeight: 800, lineHeight: 1.05, marginTop: 18, letterSpacing: -1 }}>
+            Exames gratuitos
+            <br />
+            <span style={{ color: COR.amarelo }}>em Campo Grande</span>
+          </div>
+        </div>
+      </AbsoluteFill>
+      {/* foto */}
+      <AbsoluteFill style={{ perspective: 1600, alignItems: "center", paddingTop: 560 }}>
         <div
           style={{
-            width: 960,
-            height: 630,
-            borderRadius: 28,
+            position: "relative",
+            width: 1000,
+            height: 656,
+            borderRadius: 30,
             overflow: "hidden",
-            boxShadow: "0 50px 110px rgba(0,0,0,0.6)",
-            border: "6px solid rgba(255,255,255,0.92)",
-            transform: `translateZ(${interpolate(entra, [0, 1], [-700, 0])}px) rotateY(${rotY}deg) rotateX(${rotX}deg)`,
+            boxShadow: "0 50px 110px rgba(0,0,0,0.6), 0 0 0 6px rgba(255,255,255,0.92)",
+            transform: `translateZ(${interpolate(entra, [0, 1], [-650, 0])}px) rotateY(${rotY}deg) rotateX(${rotX}deg)`,
           }}
         >
           <Img src={staticFile("story/hospital.jpg")} style={{ width: "100%", height: "100%", objectFit: "cover", transform: `scale(${zoom})` }} />
-          {/* reflexo de vidro que passa */}
           <div
             style={{
               position: "absolute",
               inset: 0,
-              background: `linear-gradient(115deg, transparent ${interpolate(f, [10, 70], [-30, 130], clamp) - 15}%, rgba(255,255,255,0.28) ${interpolate(f, [10, 70], [-30, 130], clamp)}%, transparent ${interpolate(f, [10, 70], [-30, 130], clamp) + 15}%)`,
+              background: `linear-gradient(115deg, transparent ${brilho - 15}%, rgba(255,255,255,0.28) ${brilho}%, transparent ${brilho + 15}%)`,
             }}
           />
+          {/* faixa inferior com o local, dentro da foto */}
+          <div
+            style={{
+              position: "absolute",
+              left: 0,
+              right: 0,
+              bottom: 0,
+              padding: "26px 32px",
+              display: "flex",
+              alignItems: "center",
+              gap: 14,
+              background: "linear-gradient(180deg, transparent, rgba(7,27,48,0.85))",
+              fontSize: 30,
+              fontWeight: 600,
+              opacity: t2,
+            }}
+          >
+            <svg width="24" height="32" viewBox="0 0 26 34">
+              <path d="M13 1C6.4 1 1 6.2 1 12.7 1 21.5 13 33 13 33s12-11.5 12-20.3C25 6.2 19.6 1 13 1z" fill={COR.amarelo} />
+              <circle cx="13" cy="12.5" r="4.5" fill={COR.marinho} />
+            </svg>
+            {local}
+          </div>
         </div>
       </AbsoluteFill>
-      <AbsoluteFill style={{ alignItems: "center", paddingTop: 1300, fontFamily: FONTE }}>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 14,
-            padding: "18px 30px",
-            borderRadius: 999,
-            background: "rgba(255,255,255,0.12)",
-            border: "1px solid rgba(255,255,255,0.3)",
-            backdropFilter: "blur(12px)",
-            color: COR.branco,
-            fontSize: 30,
-            fontWeight: 600,
-            opacity: ent(f, 18, 34),
-            transform: `translateY(${(1 - ent(f, 18, 34)) * 20}px)`,
-          }}
-        >
-          <svg width="26" height="34" viewBox="0 0 26 34">
-            <path d="M13 1C6.4 1 1 6.2 1 12.7 1 21.5 13 33 13 33s12-11.5 12-20.3C25 6.2 19.6 1 13 1z" fill={COR.amarelo} />
-            <circle cx="13" cy="12.5" r="4.5" fill={COR.marinho} />
-          </svg>
-          {local}
+      {/* informações abaixo da foto */}
+      <AbsoluteFill style={{ paddingTop: 1270, paddingLeft: 40, paddingRight: 40 }}>
+        <div style={{ display: "flex", gap: 20, justifyContent: "center" }}>
+          {[
+            { k: "LANÇAMENTO", v: "14 de outubro", c: COR.amarelo, d: 30 },
+            { k: "EXAMES", v: "15 a 27/10", c: COR.rosa, d: 38 },
+            { k: "ATENDIMENTO", v: "seg. a sex.", c: COR.azul, d: 46 },
+          ].map((x) => {
+            const e = ent(f, x.d, x.d + 16);
+            return (
+              <div
+                key={x.k}
+                style={{
+                  flex: 1,
+                  padding: "22px 18px",
+                  borderRadius: 22,
+                  background: "rgba(255,255,255,0.1)",
+                  border: `1.5px solid ${x.c}99`,
+                  backdropFilter: "blur(12px)",
+                  textAlign: "center",
+                  opacity: e,
+                  transform: `translateY(${(1 - e) * 30}px)`,
+                }}
+              >
+                <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: 4, color: x.c }}>{x.k}</div>
+                <div style={{ fontSize: 36, fontWeight: 800, marginTop: 6 }}>{x.v}</div>
+              </div>
+            );
+          })}
         </div>
       </AbsoluteFill>
     </AbsoluteFill>
@@ -290,7 +337,7 @@ const Numeros: React.FC<{ dur: number }> = ({ dur }) => {
         <div style={{ textAlign: "center", opacity: t1, transform: `scale(${interpolate(sobe, [0, 1], [1, 0.72])})` }}>
           <div
             style={{
-              fontSize: 300,
+              fontSize: 330,
               fontWeight: 900,
               lineHeight: 1,
               letterSpacing: -8,
@@ -350,37 +397,67 @@ const Numeros: React.FC<{ dur: number }> = ({ dur }) => {
   );
 };
 
-// ---------- Cena 4: fechamento ----------
+// ---------- Cena 4: fechamento com a logo em destaque ----------
 const Final: React.FC<{ fonte: string }> = ({ fonte }) => {
   const f = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const logo = spring({ frame: f - 14, fps, config: { damping: 16, stiffness: 90 } });
+  const logo = spring({ frame: f - 6, fps, config: { damping: 15, stiffness: 80 } });
   const t = ent(f, 0, 16);
+  const ciclo = Math.max(0, f - 30) % 60;
+  const brilho = interpolate(ciclo, [0, 30], [-0.4, 1.4], clamp);
+  const mascara = `url(${staticFile("story/logo-ze-rosa.png")})`;
+  const W = 900;
+  const H = Math.round((W * 533) / 971);
   return (
-    <AbsoluteFill style={{ fontFamily: FONTE, color: COR.branco, alignItems: "center", perspective: 1000 }}>
-      <div style={{ marginTop: 420, textAlign: "center", opacity: t, transform: `translateY(${(1 - t) * 30}px)` }}>
-        <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: 6, color: COR.amarelo }}>UTILIDADE PÚBLICA</div>
-        <div style={{ fontSize: 66, fontWeight: 800, lineHeight: 1.1, marginTop: 20 }}>
-          Compartilhe com
-          <br />
-          quem precisa.
-        </div>
-        <div style={{ fontSize: 30, fontWeight: 500, marginTop: 26, opacity: 0.85 }}>Prevenção salva vidas.</div>
-      </div>
-      {/* espaço reservado para o sticker de link do Instagram */}
-      <div style={{ marginTop: 90, fontSize: 28, fontWeight: 600, opacity: ent(f, 20, 36) * 0.9 }}>Leia a matéria completa no link</div>
-      <div style={{ marginTop: 18, fontSize: 24, fontWeight: 500, opacity: ent(f, 24, 40) * 0.7 }}>Fonte: {fonte}</div>
+    <AbsoluteFill style={{ fontFamily: FONTE, color: COR.branco, alignItems: "center", justifyContent: "center", paddingBottom: 60, perspective: 1200 }}>
+      {/* halo rosa atrás da logo */}
       <div
         style={{
           position: "absolute",
-          bottom: 360,
-          width: 300,
-          transform: `rotateY(${(1 - logo) * -80 + Math.sin(f / 20) * 6}deg) scale(${0.8 + 0.2 * logo})`,
+          top: 560,
+          width: 1080,
+          height: 700,
+          borderRadius: "50%",
+          background: `radial-gradient(ellipse, ${COR.rosa}55 0%, transparent 65%)`,
           opacity: logo,
-          filter: "drop-shadow(0 12px 22px rgba(0,0,0,0.4))",
+          filter: "blur(20px)",
+        }}
+      />
+      <div style={{ textAlign: "center", opacity: t, transform: `translateY(${(1 - t) * 30}px)` }}>
+        <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: 7, color: COR.amarelo }}>UTILIDADE PÚBLICA</div>
+        <div style={{ fontSize: 70, fontWeight: 800, lineHeight: 1.08, marginTop: 18 }}>Compartilhe com quem precisa.</div>
+      </div>
+      <div
+        style={{
+          position: "relative",
+          marginTop: 60,
+          width: W,
+          height: H,
+          opacity: logo,
+          transform: `rotateY(${(1 - logo) * -70 + Math.sin(f / 22) * 7}deg) rotateX(${Math.sin(f / 30) * 3}deg) translateY(${Math.sin(f / 18) * 6}px) scale(${0.7 + 0.3 * logo})`,
+          filter: "drop-shadow(0 22px 40px rgba(0,0,0,0.45))",
         }}
       >
-        <Img src={staticFile("story/logo-ze.png")} style={{ width: 300 }} />
+        <Img src={staticFile("story/logo-ze-rosa.png")} style={{ width: W, height: H }} />
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            WebkitMaskImage: mascara,
+            WebkitMaskSize: "100% 100%",
+            maskImage: mascara,
+            maskSize: "100% 100%",
+            background: `linear-gradient(105deg, transparent ${brilho * 100 - 16}%, rgba(255,255,255,0.8) ${brilho * 100}%, transparent ${brilho * 100 + 16}%)`,
+            mixBlendMode: "screen",
+          }}
+        />
+      </div>
+      <div style={{ marginTop: 56, textAlign: "center", opacity: ent(f, 22, 38) }}>
+        <div style={{ fontSize: 40, fontWeight: 700 }}>Prevenção salva vidas.</div>
+        <div style={{ fontSize: 30, fontWeight: 500, marginTop: 22, opacity: 0.85 }}>Leia a matéria completa no link</div>
+        <div style={{ fontSize: 24, fontWeight: 500, marginTop: 10, opacity: 0.65 }}>Fonte: {fonte}</div>
+        {/* espaço do sticker de link (adicionado no Instagram) */}
+        <div style={{ height: 150 }} />
       </div>
     </AbsoluteFill>
   );
@@ -404,8 +481,8 @@ export const StoryMateria: React.FC<StoryProps> = (props) => {
       </Sequence>
 
       <Audio
-        src={staticFile("story/trilha.wav")}
-        volume={(x) => interpolate(x, [0, 15, STORY_DURACAO - 30, STORY_DURACAO], [0, 0.55, 0.55, 0], clamp)}
+        src={staticFile("story/trilha-v2.wav")}
+        volume={(x) => interpolate(x, [0, 6, STORY_DURACAO - 20, STORY_DURACAO], [0, 0.9, 0.9, 0], clamp)}
       />
       {[0, 140, 266, 444].map((q) => (
         <Sequence key={q} from={q} durationInFrames={30} name="whoosh">
