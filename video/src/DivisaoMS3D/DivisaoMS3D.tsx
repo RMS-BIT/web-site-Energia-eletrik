@@ -117,6 +117,11 @@ const GRUPOS: Grupo[] = [
   },
 ];
 const SAI = 16; // quadros da volta mapa -> vídeo
+// O fundo só funde enquanto o recorte está exatamente sobre o vídeo original
+// (sem imagem dupla): entra o fundo, depois ele vai ao canto; na saída ele
+// volta ao enquadramento original e só então o fundo some.
+const FUNDE_ENTRA = 8;
+const FUNDE_SAI = 9;
 
 // posição de "apresentador": rosto médio do trecho fixo no canto direito
 const canto = (g: Grupo): Quadro => {
@@ -145,7 +150,9 @@ const noMapa = (f: number) => {
     const a = o(g.de);
     const b = o(g.ate);
     if (f >= a && f < b)
-      return ent(f - a, 0, 12) * (1 - ent(f - a, b - a - 12, b - a));
+      return (
+        ent(f - a, 0, FUNDE_ENTRA) * (1 - ent(f - a, b - a - FUNDE_SAI, b - a))
+      );
   }
   return 0;
 };
@@ -165,9 +172,20 @@ const FundoMapa: React.FC = () => {
 
 // imagens de apoio (geradas no Higgsfield pelo operador; só paisagem, sem
 // pessoas) com tratamento para casar com o vídeo: menos saturação e laranja
-const FOTOS: Record<Foto, { src: string; foco: string; zoom: [number, number] }> = {
-  estrada: { src: "ms/fundos/estrada.png", foco: "50% 47%", zoom: [1.04, 1.32] },
-  colheita: { src: "ms/fundos/colheita.png", foco: "58% 62%", zoom: [1.03, 1.14] },
+const FOTOS: Record<
+  Foto,
+  { src: string; foco: string; zoom: [number, number] }
+> = {
+  estrada: {
+    src: "ms/fundos/estrada.png",
+    foco: "50% 47%",
+    zoom: [1.04, 1.32],
+  },
+  colheita: {
+    src: "ms/fundos/colheita.png",
+    foco: "58% 62%",
+    zoom: [1.03, 1.14],
+  },
   soja: { src: "ms/fundos/soja.png", foco: "62% 40%", zoom: [1.04, 1.16] },
   gado: { src: "ms/fundos/gado.png", foco: "40% 60%", zoom: [1.06, 1.14] },
 };
@@ -265,7 +283,7 @@ const TrechoMapa: React.FC<{ t: Trecho; dur: number; primeiro: boolean }> = ({
 const CenaMapa: React.FC<{ g: Grupo }> = ({ g }) => {
   const f = useCurrentFrame();
   const dur = o(g.ate) - o(g.de);
-  const op = ent(f, 0, 12) * (1 - ent(f, dur - 12, dur));
+  const op = ent(f, 0, FUNDE_ENTRA) * (1 - ent(f, dur - FUNDE_SAI, dur));
   return (
     <AbsoluteFill style={{ opacity: op }}>
       <FundoMapa />
@@ -303,21 +321,18 @@ const Apresentador: React.FC<{ g: Grupo }> = ({ g }) => {
   const dur = o(g.ate) - o(g.de);
   const src = g.de + f / FPS;
   const ida = spring({
-    frame: f - 2,
+    frame: f - FUNDE_ENTRA,
     fps,
     config: { damping: 20, stiffness: 90 },
   });
-  const volta = spring({
-    frame: f - (dur - SAI),
-    fps,
-    config: { damping: 22, stiffness: 120 },
-  });
+  // chega exatamente ao enquadramento original antes do fundo sumir
+  const volta = ent(f, dur - FUNDE_SAI - 18, dur - FUNDE_SAI);
   // grupo que abre com imagem de corte: ele só entra (já no canto) depois
   const corte = g.trechos[0].modo === "colheita";
   const entra = corte ? o(g.trechos[1].de) - o(g.de) : 0;
   const vis = corte ? ent(f, entra, entra + 16) : 1;
   if (vis <= 0) return null;
-  const m = (corte ? 1 : Math.min(1, ida)) * (1 - Math.min(1, volta));
+  const m = (corte ? 1 : Math.min(1, ida)) * (1 - volta);
   const q = mistura(enquadra(src), canto(g), m);
   q.tx += (1 - vis) * 120;
   // luz de borda da cena: fria no mapa, quente nas fotos de fim de tarde
@@ -463,20 +478,120 @@ type Digitado = {
 const CPS = 0.55; // caracteres por quadro (~16 por segundo)
 
 const DIGITADOS: Digitado[] = [
-  { de: o(3.79), ate: o(5.6), texto: "11 DE OUTUBRO", y: 200, tam: 88, cor: COR.amarelo, sublinha: true },
-  { de: o(12.25), ate: o(13.36) + 6, texto: "1962", y: 190, tam: 170, cor: COR.amarelo },
-  { de: o(13.36) + 14, ate: o(16.3) - 4, texto: "ANTES DA DIVISÃO", y: 150, tam: 62, esq: true },
-  { de: o(19.7), ate: o(23.6), texto: "O SONHO DA DIVISÃO", y: 200, tam: 72, sublinha: true },
-  { de: o(27.7), ate: o(29.73), texto: "ATÉ CUIABÁ", y: 330, tam: 56, esq: true, cor: COR.amarelo },
-  { de: o(29.73) + 10, ate: o(33.86), texto: "11/10/1977", y: 150, tam: 84, esq: true, cor: COR.amarelo },
-  { de: o(29.73) + 30, ate: o(33.86), texto: "LEI COMPLEMENTAR Nº 31", y: 250, tam: 44, esq: true },
-  { de: o(34.0), ate: o(38.05) - 4, texto: "DOIS ESTADOS", y: 150, tam: 84, esq: true, sublinha: true },
-  { de: o(38.3), ate: o(42.0), texto: "DOIS IRMÃOS", y: 200, tam: 96, cor: COR.amarelo, sublinha: true },
-  { de: o(46.6), ate: o(48.0), texto: "AGRONEGÓCIO", y: 200, tam: 96, cor: COR.amarelo },
-  { de: o(48.3), ate: o(53.6), texto: "TERRAS FÉRTEIS", y: 150, tam: 84, esq: true, sublinha: true },
-  { de: o(57.1), ate: o(60.1), texto: "AQUI NO SUL", y: 150, tam: 92, esq: true, cor: COR.amarelo, sublinha: true },
+  {
+    de: o(3.79),
+    ate: o(5.6),
+    texto: "11 DE OUTUBRO",
+    y: 200,
+    tam: 88,
+    cor: COR.amarelo,
+    sublinha: true,
+  },
+  {
+    de: o(12.25),
+    ate: o(13.36) + 6,
+    texto: "1962",
+    y: 190,
+    tam: 170,
+    cor: COR.amarelo,
+  },
+  {
+    de: o(13.36) + 14,
+    ate: o(16.3) - 4,
+    texto: "ANTES DA DIVISÃO",
+    y: 150,
+    tam: 62,
+    esq: true,
+  },
+  {
+    de: o(19.7),
+    ate: o(23.6),
+    texto: "O SONHO DA DIVISÃO",
+    y: 200,
+    tam: 72,
+    sublinha: true,
+  },
+  {
+    de: o(27.7),
+    ate: o(29.73),
+    texto: "ATÉ CUIABÁ",
+    y: 330,
+    tam: 56,
+    esq: true,
+    cor: COR.amarelo,
+  },
+  {
+    de: o(29.73) + 10,
+    ate: o(33.86),
+    texto: "11/10/1977",
+    y: 150,
+    tam: 84,
+    esq: true,
+    cor: COR.amarelo,
+  },
+  {
+    de: o(29.73) + 30,
+    ate: o(33.86),
+    texto: "LEI COMPLEMENTAR Nº 31",
+    y: 250,
+    tam: 44,
+    esq: true,
+  },
+  {
+    de: o(34.0),
+    ate: o(38.05) - 4,
+    texto: "DOIS ESTADOS",
+    y: 150,
+    tam: 84,
+    esq: true,
+    sublinha: true,
+  },
+  {
+    de: o(38.3),
+    ate: o(42.0),
+    texto: "DOIS IRMÃOS",
+    y: 200,
+    tam: 96,
+    cor: COR.amarelo,
+    sublinha: true,
+  },
+  {
+    de: o(46.6),
+    ate: o(48.0),
+    texto: "AGRONEGÓCIO",
+    y: 200,
+    tam: 96,
+    cor: COR.amarelo,
+  },
+  {
+    de: o(48.3),
+    ate: o(53.6),
+    texto: "TERRAS FÉRTEIS",
+    y: 150,
+    tam: 84,
+    esq: true,
+    sublinha: true,
+  },
+  {
+    de: o(57.1),
+    ate: o(60.1),
+    texto: "AQUI NO SUL",
+    y: 150,
+    tam: 92,
+    esq: true,
+    cor: COR.amarelo,
+    sublinha: true,
+  },
   { de: o(63.11), ate: o(68.7), texto: "MATO GROSSO DO SUL", y: 110, tam: 50 },
-  { de: o(75.4), ate: FIM_FALA, texto: "DIAS MELHORES", y: 200, tam: 90, cor: COR.verdeClaro, sublinha: true },
+  {
+    de: o(75.4),
+    ate: FIM_FALA,
+    texto: "DIAS MELHORES",
+    y: 200,
+    tam: 90,
+    cor: COR.verdeClaro,
+    sublinha: true,
+  },
 ];
 
 const TextoDigitado: React.FC<{ d: Digitado }> = ({ d }) => {
