@@ -1,14 +1,23 @@
-"""Locução feminina (tom de reportagem) do story de matéria, com Kokoro.
+"""Locução feminina (tom de reportagem) de stories/reels, com Kokoro.
 
-Cada cena vira um WAV; dentro da cena, as frases são separadas por pausas
-dramáticas. As durações, o início de cada frase e a linha do tempo das cenas
-(em quadros) vão para src/StoryMateria/voz.json, lido pelo Remotion e pela
-trilha (gerar_trilha_story.py).
+O texto e o ritmo vêm de um roteiro JSON (ex.: src/StoryMateria/roteiro.json):
 
-Texto baseado na matéria do Campo Grande News (dados conferidos em 09/10/2026).
+  {
+    "saida_audio": "public/story/voz",          # um WAV por cena
+    "metadados": "src/StoryMateria/voz.json",   # tempos lidos pelo Remotion
+    "cenas": {
+      "titulo": {"ritmo": [atraso, sobra, sobreposicao], "frases": [["texto", pausa_s], ...]},
+      ...
+    }
+  }
+
+ritmo (quadros): atraso da voz após o início da cena, sobra depois da fala e
+sobreposição com a cena seguinte. O voz.json traz a duração de cada cena, o
+início de cada frase e a linha do tempo, usada pelas cenas e pela trilha
+(gerar_trilha_story.py).
 
 Uso:
-  python scripts/gerar_voz_story.py <pasta_modelos> [voz] [velocidade]
+  python scripts/gerar_voz_story.py <pasta_modelos> <roteiro.json> [voz] [velocidade]
   voz: pf_dora (feminina, padrão)
 """
 
@@ -24,38 +33,7 @@ import numpy as np
 import soundfile as sf
 from kokoro_onnx import Kokoro
 
-# cena -> lista de (frase falada, pausa depois em s)
-CENAS: dict[str, list[tuple[str, float]]] = {
-    "titulo": [
-        ("Atenção, Campo Grande.", 0.55),
-        ("O Hospital de Câncer vai oferecer cento e oitenta exames gratuitos...", 0.25),
-        ("por dia.", 0.5),
-    ],
-    "foto": [
-        ("É a campanha de prevenção do Outubro Rosa, e do Novembro Azul.", 0.35),
-        ("O lançamento é no dia catorze de outubro.", 0.5),
-    ],
-    "numeros": [
-        ("São oitenta mamografias, para mulheres de quarenta a setenta e quatro anos.", 0.4),
-        ("E cem exames de pê ésse á, para homens de quarenta e cinco a setenta e cinco.", 0.5),
-        ("De quinze a vinte e sete de outubro, de segunda a sexta,", 0.15),
-        ("com senhas por ordem de chegada.", 0.5),
-    ],
-    "final": [
-        ("Prevenção salva vidas.", 0.35),
-        ("Compartilhe com quem precisa.", 0.6),
-    ],
-}
-
 FPS = 30
-# por cena: atraso da voz após o início da cena, sobra depois da fala e
-# sobreposição com a cena seguinte (quadros)
-RITMO = {
-    "titulo": (8, 6, 14),
-    "foto": (12, 6, 10),
-    "numeros": (40, 8, 8),
-    "final": (14, 45, 0),
-}
 
 # cadeia de "voz de rádio/TV": limpa graves, presença, compressão e sala curta
 CADEIA = (
@@ -71,18 +49,19 @@ CADEIA = (
 
 def main() -> None:
     modelos = Path(sys.argv[1])
-    voz = sys.argv[2] if len(sys.argv) > 2 else "pf_dora"
-    velocidade = float(sys.argv[3]) if len(sys.argv) > 3 else 1.06
-    saida = Path("public/story/voz")
+    roteiro = json.loads(Path(sys.argv[2]).read_text(encoding="utf-8"))
+    voz = sys.argv[3] if len(sys.argv) > 3 else "pf_dora"
+    velocidade = float(sys.argv[4]) if len(sys.argv) > 4 else 1.06
+    saida = Path(roteiro["saida_audio"])
     saida.mkdir(parents=True, exist_ok=True)
 
     kokoro = Kokoro(str(modelos / "kokoro-v1.0.onnx"), str(modelos / "voices-v1.0.bin"))
     meta = {}
-    for cena, frases in CENAS.items():
+    for cena, dados in roteiro["cenas"].items():
         partes = []
         inicios = []
         sr = 24000
-        for texto, pausa in frases:
+        for texto, pausa in dados["frases"]:
             inicios.append(round(sum(len(x) for x in partes) / sr, 3))
             samples, sr = kokoro.create(texto, voice=voz, speed=velocidade, lang="pt-br")
             # apara silêncio das bordas para controlar as pausas com precisão
@@ -103,13 +82,14 @@ def main() -> None:
 
     # linha do tempo (quadros)
     ini = 0
-    for cena, (atraso, sobra, sobrepoe) in RITMO.items():
+    for cena, dados in roteiro["cenas"].items():
+        atraso, sobra, sobrepoe = dados["ritmo"]
         dur = atraso + round(meta[cena]["duracao"] * FPS) + sobra
         meta[cena].update({"de": ini, "dur": dur, "voz": ini + atraso})
         ini += dur - sobrepoe
     total = ini
 
-    destino = Path("src/StoryMateria/voz.json")
+    destino = Path(roteiro["metadados"])
     dados = {"voz": voz, "velocidade": velocidade, "fps": FPS, "total": total, "cenas": meta}
     destino.write_text(json.dumps(dados, indent=2) + "\n")
     print(f"total: {total} quadros ({total / FPS:.1f}s)")

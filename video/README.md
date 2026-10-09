@@ -154,9 +154,26 @@ logo. Fundo de jornal claro e desfocado. A locução define a linha do tempo
 
 ```console
 # fotos e logos em public/story/ (fora do Git)
-python scripts/gerar_voz_story.py <pasta_modelos_kokoro> pf_dora 1.06   # voz + voz.json
+python scripts/gerar_voz_story.py <pasta_modelos_kokoro> src/StoryMateria/roteiro.json   # voz + voz.json
 python3 scripts/gerar_trilha_story.py src/StoryMateria/voz.json public/story/trilha-v3.wav
 npx remotion render StoryMateria out/story-materia.mp4
+```
+
+O texto da locução e o ritmo de cada cena ficam no `roteiro.json`. O fundo
+de jornal e os helpers são compartilhados em `src/Materia/comum.tsx`.
+
+## Reels "Dia do Produtor Rural" (ReelProdutor)
+
+Mesmo formato de matéria, para o 10 de outubro: matéria em 3D com foto, o
+documento da Lei Estadual nº 2.141/2000 com marca-texto e o Art. 1º em
+destaque, homenagem com uma foto por frase e fechamento com a logo. A logo
+fica como marca d'água no canto inferior direito durante o vídeo.
+
+```console
+# fotos, documento e logo em public/reel-produtor/ (fora do Git)
+python scripts/gerar_voz_story.py <pasta_modelos_kokoro> src/ReelProdutor/roteiro.json
+python3 scripts/gerar_trilha_story.py src/ReelProdutor/voz.json public/reel-produtor/trilha.wav
+npx remotion render ReelProdutor out/reel-produtor.mp4
 ```
 
 ## Docs

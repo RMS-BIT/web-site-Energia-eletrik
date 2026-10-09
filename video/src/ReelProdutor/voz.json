@@ -1,0 +1,49 @@
+{
+  "voz": "pf_dora",
+  "velocidade": 1.06,
+  "fps": 30,
+  "total": 1021,
+  "cenas": {
+    "titulo": {
+      "duracao": 9.757,
+      "frases": [
+        0.0,
+        3.862
+      ],
+      "de": 0,
+      "dur": 309,
+      "voz": 10
+    },
+    "documento": {
+      "duracao": 6.563,
+      "frases": [
+        0.0,
+        3.524
+      ],
+      "de": 295,
+      "dur": 217,
+      "voz": 307
+    },
+    "homenagem": {
+      "duracao": 8.22,
+      "frases": [
+        0.0,
+        2.749,
+        5.396
+      ],
+      "de": 502,
+      "dur": 267,
+      "voz": 512
+    },
+    "final": {
+      "duracao": 6.534,
+      "frases": [
+        0.0,
+        2.537
+      ],
+      "de": 761,
+      "dur": 260,
+      "voz": 775
+    }
+  }
+}

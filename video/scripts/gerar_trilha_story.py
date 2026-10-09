@@ -1,8 +1,8 @@
 """Trilha do story de matéria: suspense que vira alegria (sintetizada).
 
-título    suspense: pulso grave, tique-taque, cordas em trêmulo e riser
-foto      impacto na revelação; a tensão se resolve em acorde maior e arpejo
-números   alegria: groove 120 BPM (bumbo, palmas, chocalho, arpejo, baixo)
+abertura  suspense: pulso grave, tique-taque, cordas em trêmulo e riser
+revelação impacto na revelação; a tensão se resolve em acorde maior e arpejo
+3ª cena   alegria: groove 120 BPM (bumbo, palmas, chocalho, arpejo, baixo)
 final     acorde final brilhante e brilho de sinos
 
 Os tempos de cada parte vêm da linha do tempo da locução (voz.json).
@@ -22,11 +22,11 @@ from gerar_audio import SR, add, env_adsr, one_pole_lowpass, save, soft_saw, t_a
 
 _linha = json.loads(Path(sys.argv[1]).read_text())
 _fps = _linha["fps"]
-_c = _linha["cenas"]
+_c = list(_linha["cenas"].values())  # 4 cenas, na ordem: abertura, revelação, desenvolvimento, final
 TOTAL = _linha["total"] / _fps + 0.3
-REVELA = _c["foto"]["de"] / _fps + 0.2
-GROOVE = _c["numeros"]["de"] / _fps
-FINAL = _c["final"]["de"] / _fps
+REVELA = _c[1]["de"] / _fps + 0.2
+GROOVE = _c[2]["de"] / _fps
+FINAL = _c[3]["de"] / _fps
 BEAT = 0.5
 rng = np.random.default_rng(14)
 

@@ -1,0 +1,86 @@
+{
+  "saida_audio": "public/story/voz",
+  "metadados": "src/StoryMateria/voz.json",
+  "cenas": {
+    "titulo": {
+      "ritmo": [
+        8,
+        6,
+        14
+      ],
+      "frases": [
+        [
+          "Atenção, Campo Grande.",
+          0.55
+        ],
+        [
+          "O Hospital de Câncer vai oferecer cento e oitenta exames gratuitos...",
+          0.25
+        ],
+        [
+          "por dia.",
+          0.5
+        ]
+      ]
+    },
+    "foto": {
+      "ritmo": [
+        12,
+        6,
+        10
+      ],
+      "frases": [
+        [
+          "É a campanha de prevenção do Outubro Rosa, e do Novembro Azul.",
+          0.35
+        ],
+        [
+          "O lançamento é no dia catorze de outubro.",
+          0.5
+        ]
+      ]
+    },
+    "numeros": {
+      "ritmo": [
+        40,
+        8,
+        8
+      ],
+      "frases": [
+        [
+          "São oitenta mamografias, para mulheres de quarenta a setenta e quatro anos.",
+          0.4
+        ],
+        [
+          "E cem exames de pê ésse á, para homens de quarenta e cinco a setenta e cinco.",
+          0.5
+        ],
+        [
+          "De quinze a vinte e sete de outubro, de segunda a sexta,",
+          0.15
+        ],
+        [
+          "com senhas por ordem de chegada.",
+          0.5
+        ]
+      ]
+    },
+    "final": {
+      "ritmo": [
+        14,
+        45,
+        0
+      ],
+      "frases": [
+        [
+          "Prevenção salva vidas.",
+          0.35
+        ],
+        [
+          "Compartilhe com quem precisa.",
+          0.6
+        ]
+      ]
+    }
+  }
+}

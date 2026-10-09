@@ -12,6 +12,12 @@ import { DURACAO as DURACAO_R43 } from "./Roteiro43/timeline";
 import { DivisaoMS, divisaoPadrao, divisaoSchema } from "./DivisaoMS/DivisaoMS";
 import { DURACAO as DURACAO_MS } from "./DivisaoMS/edicao";
 import { STORY_DURACAO, StoryMateria, storyPadrao, storySchema } from "./StoryMateria/StoryMateria";
+import {
+  REEL_PRODUTOR_DURACAO,
+  ReelProdutor,
+  reelProdutorPadrao,
+  reelProdutorSchema,
+} from "./ReelProdutor/ReelProdutor";
 import { HelloWorld } from "./HelloWorld";
 import { Logo } from "./HelloWorld/Logo";
 import { Title } from "./HelloWorld/Title";
@@ -122,6 +128,18 @@ export const RemotionRoot: React.FC = () => {
         height={1920}
         schema={storySchema}
         defaultProps={storyPadrao}
+      />
+      <Composition
+        // Reels "Dia do Produtor Rural" (10/10, MS) em formato de matéria:
+        // npx remotion render ReelProdutor out/reel-produtor.mp4
+        id="ReelProdutor"
+        component={ReelProdutor}
+        durationInFrames={REEL_PRODUTOR_DURACAO}
+        fps={FPS}
+        width={1080}
+        height={1920}
+        schema={reelProdutorSchema}
+        defaultProps={reelProdutorPadrao}
       />
     </>
   );
