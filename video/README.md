@@ -127,6 +127,23 @@ npx remotion render Roteiro43 out/roteiro43.mp4
 
 `comTrilha: false` nas props tira a trilha e deixa só os efeitos sonoros.
 
+## Reel institucional "49 anos da divisão de MS" (DivisaoMS)
+
+Edição documental de uma fala de 79 s: corte do silêncio inicial e de duas
+pausas longas, reenquadramento digital seguindo o rosto (4K → 1080x1920),
+legendas pt-BR sincronizadas com destaques, mapa da divisão MT/MS com
+contornos reais, voz tratada (redução de ruído, EQ, compressão) e trilha
+instrumental com ducking. Transcrição em `docs/divisao-ms-transcricao.md`.
+
+```console
+# bruto em public/ms/ (fora do Git)
+python scripts/transcrever.py voz16k.wav <sherpa-onnx-whisper-turbo> transcricao.json
+python scripts/rastrear_rosto.py <video> src/DivisaoMS/rosto.json   # opencv-python-headless<5
+python3 scripts/mapa_ms.py br_mt.json br_ms.json                   # src/DivisaoMS/mapa.json
+python3 scripts/gerar_trilha_ms.py 76.8 27.0 59.0 public/ms/trilha.wav
+npx remotion render DivisaoMS out/divisao-ms.mp4
+```
+
 ## Docs
 
 Get started with Remotion by reading the [fundamentals page](https://www.remotion.dev/docs/the-fundamentals).

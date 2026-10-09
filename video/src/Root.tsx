@@ -9,6 +9,8 @@ import {
 import { DURACAO as DURACAO_IMAGEADOR } from "./AnuncioImageador/roteiro";
 import { Roteiro43, r43Padrao, r43Schema } from "./Roteiro43/Roteiro43";
 import { DURACAO as DURACAO_R43 } from "./Roteiro43/timeline";
+import { DivisaoMS, divisaoPadrao, divisaoSchema } from "./DivisaoMS/DivisaoMS";
+import { DURACAO as DURACAO_MS } from "./DivisaoMS/edicao";
 import { HelloWorld } from "./HelloWorld";
 import { Logo } from "./HelloWorld/Logo";
 import { Title } from "./HelloWorld/Title";
@@ -95,6 +97,18 @@ export const RemotionRoot: React.FC = () => {
         height={1920}
         schema={r43Schema}
         defaultProps={r43Padrao}
+      />
+      <Composition
+        // Reel institucional "49 anos da divisão de MS":
+        // npx remotion render DivisaoMS out/divisao-ms.mp4
+        id="DivisaoMS"
+        component={DivisaoMS}
+        durationInFrames={DURACAO_MS}
+        fps={FPS}
+        width={1080}
+        height={1920}
+        schema={divisaoSchema}
+        defaultProps={divisaoPadrao}
       />
     </>
   );
