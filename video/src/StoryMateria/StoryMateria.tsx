@@ -397,45 +397,62 @@ const Numeros: React.FC<{ dur: number }> = ({ dur }) => {
   );
 };
 
-// ---------- Cena 4: fechamento com a logo em destaque ----------
+// ---------- Cena 4: fechamento — a logo é a protagonista ----------
 const Final: React.FC<{ fonte: string }> = ({ fonte }) => {
   const f = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const logo = spring({ frame: f - 6, fps, config: { damping: 15, stiffness: 80 } });
-  const t = ent(f, 0, 16);
-  const ciclo = Math.max(0, f - 30) % 60;
-  const brilho = interpolate(ciclo, [0, 30], [-0.4, 1.4], clamp);
+  const logo = spring({ frame: f - 2, fps, config: { damping: 13, stiffness: 70, mass: 1.1 } });
+  const t = ent(f, 18, 34);
+  const ciclo = Math.max(0, f - 22) % 50;
+  const brilho = interpolate(ciclo, [0, 26], [-0.4, 1.4], clamp);
   const mascara = `url(${staticFile("story/logo-ze-rosa.png")})`;
-  const W = 900;
+  const W = 1040;
   const H = Math.round((W * 533) / 971);
+  const pulso = 1 + Math.sin(f / 14) * 0.012;
   return (
-    <AbsoluteFill style={{ fontFamily: FONTE, color: COR.branco, alignItems: "center", justifyContent: "center", paddingBottom: 60, perspective: 1200 }}>
-      {/* halo rosa atrás da logo */}
+    <AbsoluteFill style={{ fontFamily: FONTE, color: COR.branco, alignItems: "center", justifyContent: "center", perspective: 1300 }}>
+      {/* halo e raios de luz atrás da logo */}
       <div
         style={{
           position: "absolute",
-          top: 560,
-          width: 1080,
-          height: 700,
+          width: 1300,
+          height: 1000,
           borderRadius: "50%",
-          background: `radial-gradient(ellipse, ${COR.rosa}55 0%, transparent 65%)`,
+          background: `radial-gradient(ellipse, ${COR.rosa}77 0%, ${COR.rosa}22 40%, transparent 68%)`,
           opacity: logo,
-          filter: "blur(20px)",
+          transform: `scale(${0.6 + 0.4 * logo})`,
+          filter: "blur(10px)",
         }}
       />
-      <div style={{ textAlign: "center", opacity: t, transform: `translateY(${(1 - t) * 30}px)` }}>
-        <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: 7, color: COR.amarelo }}>UTILIDADE PÚBLICA</div>
-        <div style={{ fontSize: 70, fontWeight: 800, lineHeight: 1.08, marginTop: 18 }}>Compartilhe com quem precisa.</div>
+      <svg width={1080} height={1920} style={{ position: "absolute", opacity: logo * 0.18 }}>
+        {Array.from({ length: 14 }).map((_, i) => {
+          const a = (i / 14) * Math.PI * 2 + f / 90;
+          return (
+            <line
+              key={i}
+              x1={540}
+              y1={940}
+              x2={540 + Math.cos(a) * 1100}
+              y2={940 + Math.sin(a) * 1100}
+              stroke={COR.rosa}
+              strokeWidth={36}
+              strokeLinecap="round"
+              opacity={0.5}
+            />
+          );
+        })}
+      </svg>
+      <div style={{ fontSize: 26, fontWeight: 700, letterSpacing: 7, color: COR.amarelo, opacity: t, marginBottom: 34 }}>
+        UTILIDADE PÚBLICA
       </div>
       <div
         style={{
           position: "relative",
-          marginTop: 60,
           width: W,
           height: H,
-          opacity: logo,
-          transform: `rotateY(${(1 - logo) * -70 + Math.sin(f / 22) * 7}deg) rotateX(${Math.sin(f / 30) * 3}deg) translateY(${Math.sin(f / 18) * 6}px) scale(${0.7 + 0.3 * logo})`,
-          filter: "drop-shadow(0 22px 40px rgba(0,0,0,0.45))",
+          opacity: Math.min(1, logo * 1.5),
+          transform: `rotateY(${(1 - logo) * -60 + Math.sin(f / 22) * 6}deg) rotateX(${Math.sin(f / 30) * 3}deg) translateY(${Math.sin(f / 18) * 6}px) scale(${(0.55 + 0.45 * logo) * pulso})`,
+          filter: `drop-shadow(0 28px 50px rgba(0,0,0,0.5)) blur(${(1 - Math.min(1, logo * 1.3)) * 10}px)`,
         }}
       >
         <Img src={staticFile("story/logo-ze-rosa.png")} style={{ width: W, height: H }} />
@@ -447,18 +464,18 @@ const Final: React.FC<{ fonte: string }> = ({ fonte }) => {
             WebkitMaskSize: "100% 100%",
             maskImage: mascara,
             maskSize: "100% 100%",
-            background: `linear-gradient(105deg, transparent ${brilho * 100 - 16}%, rgba(255,255,255,0.8) ${brilho * 100}%, transparent ${brilho * 100 + 16}%)`,
+            background: `linear-gradient(105deg, transparent ${brilho * 100 - 16}%, rgba(255,255,255,0.85) ${brilho * 100}%, transparent ${brilho * 100 + 16}%)`,
             mixBlendMode: "screen",
           }}
         />
       </div>
-      <div style={{ marginTop: 56, textAlign: "center", opacity: ent(f, 22, 38) }}>
-        <div style={{ fontSize: 40, fontWeight: 700 }}>Prevenção salva vidas.</div>
-        <div style={{ fontSize: 30, fontWeight: 500, marginTop: 22, opacity: 0.85 }}>Leia a matéria completa no link</div>
-        <div style={{ fontSize: 24, fontWeight: 500, marginTop: 10, opacity: 0.65 }}>Fonte: {fonte}</div>
-        {/* espaço do sticker de link (adicionado no Instagram) */}
-        <div style={{ height: 150 }} />
+      <div style={{ marginTop: 40, textAlign: "center", opacity: t, transform: `translateY(${(1 - t) * 20}px)` }}>
+        <div style={{ fontSize: 44, fontWeight: 800 }}>Compartilhe com quem precisa.</div>
+        <div style={{ fontSize: 28, fontWeight: 500, marginTop: 16, opacity: 0.85 }}>Prevenção salva vidas · Leia a matéria no link</div>
+        <div style={{ fontSize: 22, fontWeight: 500, marginTop: 8, opacity: 0.6 }}>Fonte: {fonte}</div>
       </div>
+      {/* espaço do sticker de link (adicionado no Instagram) */}
+      <div style={{ height: 120 }} />
     </AbsoluteFill>
   );
 };
