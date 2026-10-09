@@ -434,6 +434,7 @@ const Atras: React.FC<{
           fontSize: tam,
           lineHeight: 1,
           letterSpacing: espaco,
+          paddingLeft: espaco, // compensa o espaço depois da última letra
           color: cor,
           opacity: Math.min(1, s * 1.4),
           transform: `scale(${0.86 + 0.14 * s + f * 0.0006})`,
@@ -474,7 +475,7 @@ const DIGITADOS: Digitado[] = [
   { de: o(46.6), ate: o(48.0), texto: "AGRONEGÓCIO", y: 200, tam: 96, cor: COR.amarelo },
   { de: o(48.3), ate: o(53.6), texto: "TERRAS FÉRTEIS", y: 150, tam: 84, esq: true, sublinha: true },
   { de: o(57.1), ate: o(60.1), texto: "AQUI NO SUL", y: 150, tam: 92, esq: true, cor: COR.amarelo, sublinha: true },
-  { de: o(63.11), ate: o(68.7), texto: "MATO GROSSO DO SUL", y: 175, tam: 62 },
+  { de: o(63.11), ate: o(68.7), texto: "MATO GROSSO DO SUL", y: 110, tam: 50 },
   { de: o(75.4), ate: FIM_FALA, texto: "DIAS MELHORES", y: 200, tam: 90, cor: COR.verdeClaro, sublinha: true },
 ];
 
@@ -849,9 +850,9 @@ export const DivisaoMS3D: React.FC = () => {
       >
         <Atras
           texto="49"
-          top={120}
-          tam={500}
-          espaco={40}
+          top={110}
+          tam={480}
+          espaco={360}
           dur={QUARENTA_NOVE.ate - QUARENTA_NOVE.de}
         />
         <Frente de={7.39} />
@@ -863,8 +864,8 @@ export const DivisaoMS3D: React.FC = () => {
       >
         <Atras
           texto="PARABÉNS"
-          top={265}
-          tam={190}
+          top={190}
+          tam={150}
           espaco={-4}
           dur={PARABENS.ate - PARABENS.de}
           cor={COR.branco}

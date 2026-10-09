@@ -52,7 +52,7 @@ const CURVA_ROTA = new THREE.CatmullRomCurve3(
 const COR = {
   mt: "#1F5F94",
   mtLado: "#0C2E4D",
-  ms: "#3FA34D",
+  ms: "#2F8C45",
   msLado: "#1B5A29",
   amarelo: "#F6D54A",
   branco: "#FFFFFF",
@@ -437,7 +437,7 @@ export const Mapa3D: React.FC<{
   const rotMT = projeta(c, new THREE.Vector3(-0.6, 0.5, -2.2), width, height);
   const rotMS = projeta(
     c,
-    new THREE.Vector3(0.55, 0.5 + ergue, 4.35 + msZ),
+    new THREE.Vector3(-0.15, 0.5 + ergue, 3.4 + msZ),
     width,
     height,
   );
