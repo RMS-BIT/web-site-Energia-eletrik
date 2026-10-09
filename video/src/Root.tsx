@@ -11,6 +11,7 @@ import { Roteiro43, r43Padrao, r43Schema } from "./Roteiro43/Roteiro43";
 import { DURACAO as DURACAO_R43 } from "./Roteiro43/timeline";
 import { DivisaoMS, divisaoPadrao, divisaoSchema } from "./DivisaoMS/DivisaoMS";
 import { DURACAO as DURACAO_MS } from "./DivisaoMS/edicao";
+import { STORY_DURACAO, StoryMateria, storyPadrao, storySchema } from "./StoryMateria/StoryMateria";
 import { HelloWorld } from "./HelloWorld";
 import { Logo } from "./HelloWorld/Logo";
 import { Title } from "./HelloWorld/Title";
@@ -109,6 +110,18 @@ export const RemotionRoot: React.FC = () => {
         height={1920}
         schema={divisaoSchema}
         defaultProps={divisaoPadrao}
+      />
+      <Composition
+        // Story animado de matéria (utilidade pública):
+        // npx remotion render StoryMateria out/story-materia.mp4
+        id="StoryMateria"
+        component={StoryMateria}
+        durationInFrames={STORY_DURACAO}
+        fps={FPS}
+        width={1080}
+        height={1920}
+        schema={storySchema}
+        defaultProps={storyPadrao}
       />
     </>
   );
