@@ -11,15 +11,30 @@ import { Roteiro43, r43Padrao, r43Schema } from "./Roteiro43/Roteiro43";
 import { DURACAO as DURACAO_R43 } from "./Roteiro43/timeline";
 import { DivisaoMS, divisaoPadrao, divisaoSchema } from "./DivisaoMS/DivisaoMS";
 import { DURACAO as DURACAO_MS } from "./DivisaoMS/edicao";
-import { STORY_DURACAO, StoryMateria, storyPadrao, storySchema } from "./StoryMateria/StoryMateria";
+import {
+  STORY_DURACAO,
+  StoryMateria,
+  storyPadrao,
+  storySchema,
+} from "./StoryMateria/StoryMateria";
 import {
   REEL_PRODUTOR_DURACAO,
   ReelProdutor,
   reelProdutorPadrao,
   reelProdutorSchema,
 } from "./ReelProdutor/ReelProdutor";
-import { ReelProdutorViral, VIRAL_DURACAO } from "./ReelProdutorViral/ReelProdutorViral";
-import { CAMPO_DURACAO, ReelProdutorCampo } from "./ReelProdutorCampo/ReelProdutorCampo";
+import {
+  ReelProdutorViral,
+  VIRAL_DURACAO,
+} from "./ReelProdutorViral/ReelProdutorViral";
+import {
+  CAMPO_DURACAO,
+  ReelProdutorCampo,
+} from "./ReelProdutorCampo/ReelProdutorCampo";
+import {
+  AUTOR_DURACAO,
+  ReelProdutorAutor,
+} from "./ReelProdutorAutor/ReelProdutorAutor";
 import { HelloWorld } from "./HelloWorld";
 import { Logo } from "./HelloWorld/Logo";
 import { Title } from "./HelloWorld/Title";
@@ -159,6 +174,16 @@ export const RemotionRoot: React.FC = () => {
         id="ReelProdutorCampo"
         component={ReelProdutorCampo}
         durationInFrames={CAMPO_DURACAO}
+        fps={FPS}
+        width={1080}
+        height={1920}
+      />
+      <Composition
+        // Reels "Dia do Produtor Rural" — versão definitiva ("a data tem autor"):
+        // npx remotion render ReelProdutorAutor out/reel-produtor-autor.mp4
+        id="ReelProdutorAutor"
+        component={ReelProdutorAutor}
+        durationInFrames={AUTOR_DURACAO}
         fps={FPS}
         width={1080}
         height={1920}

@@ -212,6 +212,20 @@ python3 scripts/gerar_trilha_campo.py src/ReelProdutorCampo/linha.json public/re
 npx remotion render ReelProdutorCampo out/reel-produtor-campo.mp4
 ```
 
+## Reels "Dia do Produtor Rural" — versão definitiva (ReelProdutorAutor)
+
+Estratégia "a data tem autor" (17 s): gancho de curiosidade ("O Dia do
+Produtor Rural em MS tem autor."), revelação da autoria logo no início (Lei
+Estadual nº 2.141/2000, deputado Zé Teixeira), o produtor como herói no texto
+("Uma homenagem a quem planta, cria e colhe", "Há 26 anos…"), chamada "Marque
+um produtor rural" e assinatura com o deputado, a data e a logo pequena. Só
+fotos reais do deputado; trilha de violão retemporizada para 17 s.
+
+```console
+python3 scripts/gerar_trilha_campo.py src/ReelProdutorAutor/linha.json public/reel-produtor/trilha-autor.wav
+npx remotion render ReelProdutorAutor out/reel-produtor-autor.mp4
+```
+
 ## Docs
 
 Get started with Remotion by reading the [fundamentals page](https://www.remotion.dev/docs/the-fundamentals).
