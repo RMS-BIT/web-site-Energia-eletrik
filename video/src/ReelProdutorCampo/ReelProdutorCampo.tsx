@@ -16,9 +16,9 @@ import { clamp, ent } from "../Materia/comum";
 import linha from "./linha.json";
 
 // Reels "Dia do Produtor Rural" — versão equilibrada (padrão deputado), só
-// com fotos reais do deputado. Cada foto entra grande e depois se encaixa
-// num mural 2×2 que vai se completando; no final, o mural inteiro fica na
-// tela com a logo. Ritmo calmo (uma frase por compasso de 90 BPM ≈ 2,7 s),
+// com fotos reais do deputado, empilhadas em camadas 3D (cada foto nova entra
+// na frente e as anteriores recuam em profundidade). No final a pilha se abre
+// em leque ao fundo e a câmera foca na logo e na data, em 3D. Ritmo calmo (uma frase por compasso de 90 BPM ≈ 2,7 s),
 // luz dourada e partículas de luz. Trilha de violão (gerar_trilha_campo.py).
 // Lei Estadual nº 2.141, de 28/08/2000 (DOE nº 5.338); autoria:
 // zeteixeira.com (10/10/2017). Conferido em 09/10/2026.
@@ -46,105 +46,90 @@ const COR = {
 };
 const SOMBRA = "0 3px 18px rgba(0,0,0,0.55), 0 1px 4px rgba(0,0,0,0.4)";
 
-// ---------- mural 2×2 ----------
-const GRADE = { x: 50, y: 500, w: 480, h: 520, gap: 20 };
-const celula = (i: number) => ({
-  x: GRADE.x + (i % 2) * (GRADE.w + GRADE.gap),
-  y: GRADE.y + Math.floor(i / 2) * (GRADE.h + GRADE.gap),
-  w: GRADE.w,
-  h: GRADE.h,
-});
-
+// ---------- fotos em camadas 3D ----------
+// Cada foto nova entra pela frente; as anteriores recuam em profundidade
+// (mais para trás, deslocadas, levemente giradas e desfocadas).
 type Foto = {
   src: string;
   foco: string;
   entra: number;
-  grande: { w: number; h: number };
-  focoGrande?: string;
+  w: number;
+  h: number;
+  lado: number;
 };
-// entra = quadro em que a foto aparece grande; ~52 quadros depois vai para o mural
 const FOTOS: Foto[] = [
   {
     src: "reel-produtor/ze-por-do-sol.jpg",
-    foco: "50% 28%",
+    foco: "50% 30%",
     entra: 4,
-    grande: { w: 700, h: 1000 },
-    focoGrande: "50% 35%",
+    w: 600,
+    h: 880,
+    lado: -1,
   },
   {
     src: "reel-produtor/ze-soja.jpg",
-    foco: "55% 30%",
+    foco: "55% 40%",
     entra: 160,
-    grande: { w: 980, h: 620 },
+    w: 900,
+    h: 600,
+    lado: 1,
   },
   {
     src: "reel-produtor/ze-gado.jpg",
-    foco: "72% 25%",
+    foco: "72% 35%",
     entra: 240,
-    grande: { w: 980, h: 620 },
+    w: 900,
+    h: 600,
+    lado: -1,
   },
   {
     src: "reel-produtor/ze-terere.jpg",
-    foco: "45% 38%",
+    foco: "45% 40%",
     entra: 320,
-    grande: { w: 700, h: 1000 },
-    focoGrande: "50% 40%",
+    w: 600,
+    h: 880,
+    lado: 1,
   },
 ];
-const SEGURA = 50; // quadros em destaque antes de ir para o mural
-const VIAGEM = 26;
+const CENTRO_Y = 1010; // centro da pilha na tela
 
-const FotoMural: React.FC<{ foto: Foto; i: number }> = ({ foto, i }) => {
+const Camada: React.FC<{ foto: Foto; i: number }> = ({ foto, i }) => {
   const f = useCurrentFrame();
   const { fps } = useVideoConfig();
   const t = f - foto.entra;
   if (t < 0) return null;
-  const aparece = spring({
+  const entra = spring({
     frame: t,
     fps,
-    config: { damping: 18, stiffness: 90 },
+    config: { damping: 18, stiffness: 70, mass: 1.1 },
   });
-  const vai = spring({
-    frame: t - SEGURA,
-    fps,
-    config: { damping: 17, stiffness: 80 },
-    durationInFrames: VIAGEM,
-  });
-  const c = celula(i);
-  const g = {
-    w: foto.grande.w,
-    h: foto.grande.h,
-    x: (1080 - foto.grande.w) / 2,
-    y: GRADE.y + (GRADE.h * 2 + GRADE.gap - foto.grande.h) / 2,
-  };
-  const x = interpolate(vai, [0, 1], [g.x, c.x]);
-  const y = interpolate(vai, [0, 1], [g.y, c.y]);
-  const w = interpolate(vai, [0, 1], [g.w, c.w]);
-  const h = interpolate(vai, [0, 1], [g.h, c.h]);
-  const assenta =
-    vai > 0.98
-      ? spring({
-          frame: t - SEGURA - VIAGEM,
-          fps,
-          config: { damping: 10, stiffness: 160 },
-        })
-      : 0;
-  const zoomLento = 1.02 + Math.min(1, t / 700) * 0.06;
+  // profundidade = quantas fotos já entraram na frente desta
+  const d = FOTOS.slice(i + 1).reduce(
+    (acc, o) => acc + ent(f, o.entra, o.entra + 34),
+    0,
+  );
+  // no final, a pilha se abre em leque e vai para o fundo
+  const abre = ent(f, M.final, M.final + 40);
+  const x = foto.lado * (70 * d + abre * (220 + 60 * i));
+  const y = -50 * d - abre * 120;
+  const z = interpolate(entra, [0, 1], [520, 0]) - 230 * d - abre * 600;
+  const rz = foto.lado * (3.5 * d + abre * 6);
+  const ry = foto.lado * abre * -18;
   return (
     <div
       style={{
         position: "absolute",
-        left: x,
-        top: y,
-        width: w,
-        height: h,
-        borderRadius: 24,
+        left: 540 - foto.w / 2,
+        top: CENTRO_Y - foto.h / 2,
+        width: foto.w,
+        height: foto.h,
+        borderRadius: 26,
         overflow: "hidden",
-        border: "6px solid #FFFFFF",
-        boxShadow: `0 ${24 - 10 * vai}px ${60 - 25 * vai}px rgba(0,0,0,${0.5 - 0.15 * vai})`,
-        opacity: Math.min(1, aparece * 1.6),
-        transform: `scale(${interpolate(aparece, [0, 1], [0.86, 1]) * (1 + Math.sin(assenta * Math.PI) * 0.02)})`,
-        zIndex: vai < 1 ? 10 : 1,
+        border: "7px solid #FFFFFF",
+        boxShadow: "0 40px 90px rgba(0,0,0,0.55)",
+        opacity: Math.min(1, entra * 1.8),
+        transform: `translate3d(${x}px, ${y}px, ${z}px) rotateZ(${rz}deg) rotateY(${ry}deg)`,
+        filter: `blur(${Math.min(6, 1.4 * d + abre * 3)}px) brightness(${1 - 0.12 * d - abre * 0.25})`,
       }}
     >
       <Img
@@ -153,42 +138,38 @@ const FotoMural: React.FC<{ foto: Foto; i: number }> = ({ foto, i }) => {
           width: "100%",
           height: "100%",
           objectFit: "cover",
-          objectPosition:
-            vai < 0.5 && foto.focoGrande ? foto.focoGrande : foto.foco,
+          objectPosition: foto.foco,
           filter: "saturate(1.08) contrast(1.04) sepia(0.06)",
-          transform: `scale(${zoomLento})`,
+          transform: `scale(${1.03 + Math.min(1, t / 600) * 0.07})`,
         }}
       />
     </div>
   );
 };
 
-// espaços vazios do mural, que vão sendo preenchidos
-const Vagas: React.FC = () => {
+const Pilha: React.FC = () => {
   const f = useCurrentFrame();
+  // câmera: leve órbita que dá paralaxe entre as camadas
+  const ry = Math.sin(f / 110) * 7;
+  const rx = 4 + Math.sin(f / 150) * 2;
   return (
-    <>
-      {FOTOS.map((foto, i) => {
-        const c = celula(i);
-        const some = ent(f, foto.entra + SEGURA, foto.entra + SEGURA + VIAGEM);
-        return (
-          <div
-            key={i}
-            style={{
-              position: "absolute",
-              left: c.x,
-              top: c.y,
-              width: c.w,
-              height: c.h,
-              borderRadius: 24,
-              border: "2px dashed rgba(255,255,255,0.35)",
-              background: "rgba(255,255,255,0.06)",
-              opacity: ent(f, 20 + i * 6, 40 + i * 6) * (1 - some),
-            }}
-          />
-        );
-      })}
-    </>
+    <AbsoluteFill
+      style={{
+        perspective: 1500,
+        perspectiveOrigin: `540px ${CENTRO_Y - 100}px`,
+      }}
+    >
+      <AbsoluteFill
+        style={{
+          transformStyle: "preserve-3d",
+          transform: `rotateY(${ry}deg) rotateX(${rx}deg)`,
+        }}
+      >
+        {FOTOS.map((foto, i) => (
+          <Camada key={foto.src} foto={foto} i={i} />
+        ))}
+      </AbsoluteFill>
+    </AbsoluteFill>
   );
 };
 
@@ -280,8 +261,8 @@ const FRASES: { de: number; dur: number; linhas: Linha[] }[] = [
     de: 720,
     dur: CAMPO_DURACAO - 720,
     linhas: [
-      { t: "Parabéns,", tipo: "manuscrita", tam: 130 },
-      { t: "produtor rural!", tipo: "forte", tam: 84 },
+      { t: "Parabéns,", tipo: "manuscrita", tam: 120 },
+      { t: "produtor rural!", tipo: "forte", tam: 76 },
     ],
   },
 ];
@@ -363,57 +344,141 @@ const Frase: React.FC<{ linhas: Linha[]; dur: number; ultima: boolean }> = ({
   );
 };
 
-// ---------- logo no centro do mural, no final ----------
-const ENCOLHE = 0.72; // escala do mural no final, para a logo caber embaixo
-
-const SeloLogo: React.FC = () => {
-  const f = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const s = spring({
-    frame: f - (M.final + 24),
-    fps,
-    config: { damping: 13, stiffness: 90 },
-  });
-  if (f < M.final + 24) return null;
-  const W = 600;
-  const topo = GRADE.y + (GRADE.h * 2 + GRADE.gap) * ENCOLHE + 34;
+// ---------- final: logo e data em 3D ----------
+// logo com "espessura": várias cópias recuadas em Z formam a lateral
+const Logo3D: React.FC<{ largura: number }> = ({ largura }) => {
+  const h = Math.round(largura * LOGO_PROP);
   return (
     <div
       style={{
-        position: "absolute",
-        left: (1080 - W) / 2,
-        top: topo,
-        width: W,
-        opacity: Math.min(1, s * 1.5),
-        transform: `scale(${0.6 + 0.4 * s}) translateY(${Math.sin(f / 22) * 4}px)`,
-        filter: "drop-shadow(0 20px 40px rgba(0,0,0,0.45))",
-        zIndex: 20,
+        position: "relative",
+        width: largura,
+        height: h,
+        transformStyle: "preserve-3d",
       }}
     >
+      {Array.from({ length: 12 }).map((_, k) => (
+        <Img
+          key={k}
+          src={staticFile(LOGO)}
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: largura,
+            height: h,
+            transform: `translateZ(${-(12 - k) * 2.2}px)`,
+            filter: "brightness(0.38) saturate(1.2)",
+          }}
+        />
+      ))}
       <Img
         src={staticFile(LOGO)}
         style={{
-          width: W,
-          height: Math.round(W * LOGO_PROP),
-          display: "block",
+          position: "absolute",
+          inset: 0,
+          width: largura,
+          height: h,
+          transform: "translateZ(0px)",
         }}
       />
     </div>
   );
 };
 
-// mural inteiro: no final encolhe (preso pelo topo) para abrir espaço para a logo
-const Mural: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+// texto com relevo (sombras empilhadas imitam a extrusão)
+const relevo = (cor: string, n = 10) =>
+  Array.from({ length: n }, (_, k) => `${0}px ${k + 1}px 0 ${cor}`).join(", ") +
+  ", 0 18px 30px rgba(0,0,0,0.55)";
+
+const Final3D: React.FC = () => {
   const f = useCurrentFrame();
-  const e = interpolate(ent(f, M.final, M.final + 30), [0, 1], [1, ENCOLHE]);
+  const { fps } = useVideoConfig();
+  const t = f - M.final;
+  if (t < 0) return null;
+  const logo = spring({
+    frame: t - 16,
+    fps,
+    config: { damping: 15, stiffness: 60, mass: 1.2 },
+  });
+  const data = spring({
+    frame: t - 46,
+    fps,
+    config: { damping: 15, stiffness: 70 },
+  });
+  const orbita = Math.sin(t / 40) * 6;
   return (
     <AbsoluteFill
       style={{
-        transform: `scale(${e})`,
-        transformOrigin: `540px ${GRADE.y}px`,
+        perspective: 1200,
+        perspectiveOrigin: "540px 1000px",
+        zIndex: 25,
       }}
     >
-      {children}
+      {/* brilho atrás da logo */}
+      <div
+        style={{
+          position: "absolute",
+          left: 540 - 650,
+          top: 900 - 520,
+          width: 1300,
+          height: 1040,
+          borderRadius: "50%",
+          background:
+            "radial-gradient(ellipse, rgba(255,230,150,0.45) 0%, rgba(255,200,90,0.12) 40%, transparent 68%)",
+          opacity: logo,
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          left: 540 - 380,
+          top: 680,
+          transformStyle: "preserve-3d",
+          opacity: Math.min(1, logo * 1.6),
+          transform: `translateZ(${interpolate(logo, [0, 1], [-900, 60])}px) rotateY(${interpolate(logo, [0, 1], [-50, -14]) + orbita}deg) rotateX(${8 + Math.sin(t / 55) * 3}deg)`,
+          filter: "drop-shadow(0 30px 40px rgba(0,0,0,0.5))",
+        }}
+      >
+        <Logo3D largura={760} />
+      </div>
+      <div
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          top: 1210,
+          textAlign: "center",
+          transformStyle: "preserve-3d",
+          opacity: Math.min(1, data * 1.6),
+          transform: `translateZ(${interpolate(data, [0, 1], [-500, 40])}px) rotateX(${interpolate(data, [0, 1], [60, 18])}deg) rotateY(${orbita * 0.6}deg)`,
+        }}
+      >
+        <div
+          style={{
+            fontFamily: FONTE,
+            fontWeight: 900,
+            fontSize: 96,
+            letterSpacing: -2,
+            color: COR.amarelo,
+            textShadow: relevo("#9C7A12"),
+          }}
+        >
+          10 DE OUTUBRO
+        </div>
+        <div
+          style={{
+            fontFamily: FONTE,
+            fontWeight: 800,
+            fontSize: 56,
+            letterSpacing: 1,
+            color: COR.branco,
+            marginTop: 6,
+            textShadow: relevo("#8C8C8C", 7),
+          }}
+        >
+          DIA DO PRODUTOR RURAL
+        </div>
+      </div>
     </AbsoluteFill>
   );
 };
@@ -531,13 +596,8 @@ export const ReelProdutorCampo: React.FC = () => {
     <AbsoluteFill style={{ background: "#000" }}>
       <AbsoluteFill style={{ opacity: ent(f, 0, 16) }}>
         <Fundo />
-        <Mural>
-          <Vagas />
-          {FOTOS.map((foto, i) => (
-            <FotoMural key={foto.src} foto={foto} i={i} />
-          ))}
-        </Mural>
-        <SeloLogo />
+        <Pilha />
+        <Final3D />
         {FRASES.map((fr, i) => (
           <Sequence
             key={fr.de}

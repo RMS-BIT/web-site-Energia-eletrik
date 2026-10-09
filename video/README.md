@@ -197,10 +197,12 @@ npx remotion render ReelProdutorViral out/reel-produtor-viral.mp4
 
 ## Reels "Dia do Produtor Rural" — versão equilibrada (ReelProdutorCampo)
 
-Padrão de um deputado experiente, só com fotos reais do deputado: cada foto
-entra grande e se encaixa num mural 2×2 que vai se completando ao longo do
-vídeo; no final, o mural encolhe e a logo aparece embaixo, sem cobrir
-ninguém. Frases calmas (uma por compasso ≈ 2,7 s) com o gancho "Se você comeu
+Padrão de um deputado experiente, só com fotos reais do deputado,
+empilhadas em camadas 3D: cada foto nova entra pela frente e as anteriores
+recuam em profundidade (deslocadas, giradas e desfocadas), com uma leve órbita
+de câmera que dá paralaxe. No final a pilha se abre em leque ao fundo e a
+câmera foca na logo (com espessura 3D) e em "10 de outubro · Dia do Produtor
+Rural" em perspectiva. Frases calmas (uma por compasso ≈ 2,7 s) com o gancho "Se você comeu
 hoje, agradeça a um produtor rural", a lei, a chamada "Marque um produtor
 rural" e "Parabéns, produtor rural!". Luz dourada, partículas de luz e trilha
 de violão dedilhado (Karplus-Strong) que cresce até o final.
