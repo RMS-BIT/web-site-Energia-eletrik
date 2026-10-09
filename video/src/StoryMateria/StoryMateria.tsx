@@ -136,9 +136,23 @@ const CartaoMateria: React.FC<StoryProps> = ({ titulo, editoria, fonte }) => {
           transformStyle: "preserve-3d",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 30 }}>
-          <div style={{ width: 12, height: 12, borderRadius: 6, background: COR.rosa }} />
-          <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: 6, color: COR.rosa, textTransform: "uppercase" }}>{editoria}</div>
+        {/* cabeçalho do veículo: logo do Campo Grande News + editoria */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            paddingBottom: 26,
+            marginBottom: 34,
+            borderBottom: "2px solid rgba(13,36,64,0.1)",
+            opacity: ent(f, 8, 26),
+          }}
+        >
+          <Img src={staticFile("story/logo-cgn.png")} alt={fonte} style={{ height: 132, width: (132 * 252) / 148 }} />
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ width: 12, height: 12, borderRadius: 6, background: COR.rosa }} />
+            <div style={{ fontSize: 24, fontWeight: 700, letterSpacing: 4, color: COR.rosa, textTransform: "uppercase" }}>{editoria}</div>
+          </div>
         </div>
         <div style={{ fontSize: 84, lineHeight: 1.06, fontWeight: 800, color: COR.tinta, letterSpacing: -2 }}>
           {palavras.map((p, i) => {
@@ -175,10 +189,6 @@ const CartaoMateria: React.FC<StoryProps> = ({ titulo, editoria, fonte }) => {
               </span>
             );
           })}
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 16, marginTop: 40, opacity: ent(f, 90, 110) }}>
-          <div style={{ width: 40, height: 2, background: COR.tinta, opacity: 0.4 }} />
-          <div style={{ fontSize: 30, fontWeight: 600, color: "#5A6B80", letterSpacing: 1 }}>{fonte}</div>
         </div>
       </div>
     </AbsoluteFill>
@@ -472,7 +482,21 @@ const Final: React.FC<{ fonte: string }> = ({ fonte }) => {
       <div style={{ marginTop: 40, textAlign: "center", opacity: t, transform: `translateY(${(1 - t) * 20}px)` }}>
         <div style={{ fontSize: 44, fontWeight: 800 }}>Compartilhe com quem precisa.</div>
         <div style={{ fontSize: 28, fontWeight: 500, marginTop: 16, opacity: 0.85 }}>Prevenção salva vidas · Leia a matéria no link</div>
-        <div style={{ fontSize: 22, fontWeight: 500, marginTop: 8, opacity: 0.6 }}>Fonte: {fonte}</div>
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 14,
+            marginTop: 26,
+            padding: "10px 22px 10px 24px",
+            borderRadius: 18,
+            background: "rgba(255,255,255,0.94)",
+            boxShadow: "0 12px 30px rgba(0,0,0,0.35)",
+          }}
+        >
+          <div style={{ fontSize: 22, fontWeight: 600, color: "#5A6B80", letterSpacing: 1 }}>Fonte</div>
+          <Img src={staticFile("story/logo-cgn.png")} alt={fonte} style={{ height: 80, width: (80 * 252) / 148 }} />
+        </div>
       </div>
       {/* espaço do sticker de link (adicionado no Instagram) */}
       <div style={{ height: 120 }} />
