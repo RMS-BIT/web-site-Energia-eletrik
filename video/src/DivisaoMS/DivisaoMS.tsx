@@ -2,6 +2,7 @@ import {
   AbsoluteFill,
   Audio,
   Easing,
+  Img,
   OffthreadVideo,
   Sequence,
   interpolate,
@@ -76,7 +77,7 @@ const Orador: React.FC<{ plano: Plano }> = ({ plano }) => {
         }}
       >
         <OffthreadVideo
-          src={staticFile("ms/fala-4k.mp4")}
+          src={staticFile("ms/fala-4k-cor.mp4")}
           trimBefore={Math.round(plano.de * FPS)}
           muted
           style={{ width: 1080, height: 1920 }}
@@ -284,7 +285,15 @@ const Identificacao: React.FC<{ nome: string; cargo: string }> = ({ nome, cargo 
   if (f < de || f > ate) return null;
   return (
     <AbsoluteFill style={{ paddingTop: 1090, paddingLeft: 80, fontFamily: FONTE, opacity: s }}>
-      <div style={{ display: "flex", alignItems: "stretch", gap: 22 }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "stretch",
+          gap: 22,
+          transformOrigin: "left center",
+          transform: `perspective(900px) rotateY(${(1 - p) * -55 + (1 - s) * 40}deg)`,
+        }}
+      >
         <div style={{ width: 6, background: COR.amarelo, transform: `scaleY(${p})`, transformOrigin: "top", borderRadius: 3 }} />
         <div style={{ overflow: "hidden" }}>
           <div style={{ fontSize: 50, fontWeight: 700, color: COR.branco, transform: `translateY(${(1 - p) * 100}%)`, textShadow: "0 3px 14px rgba(0,0,0,0.5)" }}>
@@ -307,7 +316,17 @@ const MarcaData: React.FC = () => {
   const p = ent(f, de, de + 14) * interpolate(f, [ate - 10, ate], [1, 0], clamp);
   return (
     <AbsoluteFill style={{ paddingTop: 300, paddingLeft: 80, fontFamily: FONTE, opacity: p, alignItems: "flex-start" }}>
-      <div style={{ display: "inline-block", padding: "18px 26px", borderRadius: 14, background: "rgba(13,53,90,0.78)", borderLeft: `4px solid ${COR.amarelo}` }}>
+      <div
+        style={{
+          display: "inline-block",
+          padding: "18px 26px",
+          borderRadius: 14,
+          background: "rgba(13,53,90,0.78)",
+          borderLeft: `4px solid ${COR.amarelo}`,
+          transformOrigin: "left center",
+          transform: `perspective(900px) rotateY(${(1 - ent(f, de, de + 16)) * -60}deg)`,
+        }}
+      >
       <div style={{ display: "flex", alignItems: "center", gap: 16, color: COR.branco }}>
         <span style={{ fontSize: 34, fontWeight: 600 }}>1977</span>
         <span style={{ width: 80 * p, height: 2, background: COR.amarelo }} />
@@ -330,6 +349,67 @@ const Encerramento: React.FC = () => {
         <div style={{ fontSize: 26, fontWeight: 600, letterSpacing: 8, color: COR.amarelo }}>49 ANOS</div>
         <div style={{ width: 50, height: 2, background: COR.amarelo, margin: "16px auto" }} />
         <div style={{ fontSize: 44, fontWeight: 600, color: COR.branco, letterSpacing: 1 }}>Mato Grosso do Sul</div>
+      </div>
+    </AbsoluteFill>
+  );
+};
+
+
+// ---------- Logo animada (some nos mapas e no encerramento) ----------
+const LOGO_W = 280;
+const LOGO_H = Math.round((LOGO_W * 474) / 844);
+
+const LogoAnimada: React.FC = () => {
+  const f = useCurrentFrame();
+  const mapas = PLANOS.filter((p) => ehMapa(p.tipo)).map((p) => [paraSaida(p.de), paraSaida(p.ate)]);
+  // janelas em que a logo aparece
+  const janelas: [number, number][] = [];
+  let ini = 170; // depois da identificação com nome e cargo
+  for (const [a, b] of mapas) {
+    if (a - ini > 40) janelas.push([ini, a]);
+    ini = Math.max(ini, b + FUSAO);
+  }
+  janelas.push([ini, DURACAO - 40]);
+  const j = janelas.find(([a, b]) => f >= a && f < b);
+  if (!j) return null;
+  const [a, b] = j;
+  const entra = ent(f, a, a + 20);
+  const sai = interpolate(f, [b - 12, b], [0, 1], { ...clamp, easing: Easing.in(Easing.cubic) });
+  const t = f - a;
+  // movimento contínuo e discreto: flutua e inclina em perspectiva
+  const flutua = Math.sin(t / 32) * 5;
+  const giroY = (1 - entra) * -80 + sai * 80 + Math.sin(t / 48) * 9;
+  const giroX = Math.sin(t / 61) * 5;
+  const escala = 0.86 + 0.14 * entra - 0.1 * sai + Math.sin(t / 40) * 0.012;
+  // brilho que atravessa a logo a cada ~7 s
+  const ciclo = (t + 40) % 210;
+  const brilho = interpolate(ciclo, [0, 36], [-0.4, 1.4], clamp);
+  const mascara = `url(${staticFile("ms/logo-ze.png")})`;
+  return (
+    <AbsoluteFill style={{ alignItems: "flex-end", paddingTop: 268, paddingRight: 56, pointerEvents: "none" }}>
+      <div
+        style={{
+          width: LOGO_W,
+          height: LOGO_H,
+          position: "relative",
+          opacity: entra * (1 - sai),
+          transform: `perspective(800px) translateY(${flutua}px) rotateY(${giroY}deg) rotateX(${giroX}deg) scale(${escala})`,
+          filter: "drop-shadow(0 10px 18px rgba(0,0,0,0.35))",
+        }}
+      >
+        <Img src={staticFile("ms/logo-ze.png")} style={{ width: LOGO_W, height: LOGO_H }} />
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            WebkitMaskImage: mascara,
+            WebkitMaskSize: "100% 100%",
+            maskImage: mascara,
+            maskSize: "100% 100%",
+            background: `linear-gradient(105deg, transparent ${brilho * 100 - 18}%, rgba(255,255,255,0.75) ${brilho * 100}%, transparent ${brilho * 100 + 18}%)`,
+            mixBlendMode: "screen",
+          }}
+        />
       </div>
     </AbsoluteFill>
   );
@@ -372,6 +452,7 @@ export const DivisaoMS: React.FC<DivisaoProps> = ({ mostrarNome, nome, cargo, vo
 
       {mostrarNome ? <Identificacao nome={nome} cargo={cargo} /> : null}
       <MarcaData />
+      <LogoAnimada />
       <Legendas />
       <Encerramento />
 
