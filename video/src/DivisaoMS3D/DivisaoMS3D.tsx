@@ -49,8 +49,8 @@ const COR = {
   branco: "#FFFFFF",
 };
 
-const VIDEO = "ms/fala-4k-v3.mp4";
-const RECORTE = "ms/fala-recorte-v3.webm";
+const VIDEO = "ms/fala-4k.mp4"; // original, sem filtro de cor
+const RECORTE = "ms/fala-recorte-orig.webm"; // mesma cor do original
 
 // ---------- enquadramento (o mesmo para o vídeo e para o recorte) ----------
 const ROSTO = rosto.rosto as [number, number, number][];
@@ -335,15 +335,6 @@ const Apresentador: React.FC<{ g: Grupo }> = ({ g }) => {
   const m = (corte ? 1 : Math.min(1, ida)) * (1 - volta);
   const q = mistura(enquadra(src), canto(g), m);
   q.tx += (1 - vis) * 120;
-  // luz de borda da cena: fria no mapa, quente nas fotos de fim de tarde
-  const quente = g.trechos.reduce((acc, t) => {
-    const a = o(t.de) - o(g.de);
-    const b = o(t.ate) - o(g.de);
-    const dentro = ent(f, a - 6, a + 6) * (1 - ent(f, b - 6, b + 6));
-    return acc + (ehFoto(t.modo) ? dentro : 0);
-  }, 0);
-  const borda = quente > 0.5 ? "255,196,130" : "150,200,255";
-  const sombra = 0.55 - 0.25 * quente;
   return (
     <AbsoluteFill style={{ overflow: "hidden", opacity: vis }}>
       <AbsoluteFill
@@ -357,12 +348,6 @@ const Apresentador: React.FC<{ g: Grupo }> = ({ g }) => {
           style={{
             width: 1080,
             height: 1920,
-            // luz de borda fria (integra o recorte à luz do mapa) + sombra
-            // projetada atrás dele; ajuste leve de cor para o ambiente azul
-            filter:
-              `drop-shadow(0 0 ${3 * m}px rgba(${borda},${0.45 * m})) ` +
-              `drop-shadow(${-34 * m}px ${10 * m}px ${44 * m}px rgba(0,8,20,${sombra * m})) ` +
-              `brightness(${1 - 0.03 * m}) contrast(${1 + 0.04 * m}) saturate(${1 - 0.06 * m}) sepia(${0.08 * quente * m})`,
           }}
         />
       </AbsoluteFill>
@@ -414,16 +399,6 @@ const Frente: React.FC<{ de: number }> = ({ de }) => {
     </AbsoluteFill>
   );
 };
-
-const Acabamento: React.FC = () => (
-  <AbsoluteFill
-    style={{
-      background:
-        "linear-gradient(180deg, rgba(3,14,26,0.32) 0%, rgba(0,0,0,0) 22%, rgba(0,0,0,0) 56%, rgba(3,14,26,0.4) 70%, rgba(3,14,26,0.5) 82%, rgba(3,14,26,0.18) 100%)," +
-        "radial-gradient(ellipse at 50% 42%, rgba(0,0,0,0) 60%, rgba(0,0,0,0.25) 100%)",
-    }}
-  />
-);
 
 // ---------- texto grande atrás dele ----------
 const Atras: React.FC<{
@@ -780,49 +755,6 @@ const Legendas: React.FC = () => {
   );
 };
 
-// ---------- acabamento cinematográfico ----------
-// granulação de filme (SVG, a semente muda a cada quadro)
-const Grao: React.FC = () => {
-  const f = useCurrentFrame();
-  return (
-    <AbsoluteFill
-      style={{ mixBlendMode: "overlay", opacity: 0.16, pointerEvents: "none" }}
-    >
-      <svg width={1080} height={1920}>
-        <filter id="grao">
-          <feTurbulence
-            type="fractalNoise"
-            baseFrequency="0.85"
-            numOctaves={2}
-            seed={f % 12}
-          />
-          <feColorMatrix type="saturate" values="0" />
-        </filter>
-        <rect width={1080} height={1920} filter="url(#grao)" />
-      </svg>
-    </AbsoluteFill>
-  );
-};
-
-// luz quente atravessando o quadro nas trocas vídeo <-> mapa
-const Vazamento: React.FC<{ lado: 1 | -1 }> = ({ lado }) => {
-  const f = useCurrentFrame();
-  const p = interpolate(f, [0, 22], [0, 1], clamp);
-  const x = lado > 0 ? -20 + p * 140 : 120 - p * 140;
-  const a = Math.sin(p * Math.PI);
-  return (
-    <AbsoluteFill
-      style={{
-        mixBlendMode: "screen",
-        opacity: a * 0.75,
-        background:
-          `radial-gradient(ellipse 45% 70% at ${x}% 35%, rgba(255,190,110,0.85) 0%, rgba(255,120,40,0.35) 40%, rgba(0,0,0,0) 75%),` +
-          `radial-gradient(ellipse 30% 40% at ${x + 18 * lado}% 70%, rgba(255,230,170,0.5) 0%, rgba(0,0,0,0) 70%)`,
-      }}
-    />
-  );
-};
-
 // ---------- cartão final ----------
 const LOGO = "ms/logo-ze.png";
 const Cartao: React.FC = () => {
@@ -939,8 +871,8 @@ export const DivisaoMS3D: React.FC = () => {
     return interpolate(dist, [0, 12], [0.13, 0.24], clamp);
   };
   const transicoes = GRUPOS.flatMap((g) => [
-    { q: o(g.de), lado: 1 as const },
-    { q: o(g.ate) - SAI, lado: -1 as const },
+    { q: o(g.de) },
+    { q: o(g.ate) - SAI },
   ]);
   return (
     <AbsoluteFill style={{ backgroundColor: COR.noite }}>
@@ -955,7 +887,6 @@ export const DivisaoMS3D: React.FC = () => {
           <Original de={a} />
         </Sequence>
       ))}
-      <Acabamento />
 
       {/* 2. textos atrás dele + recorte por cima */}
       <Sequence
@@ -1015,11 +946,6 @@ export const DivisaoMS3D: React.FC = () => {
         </Sequence>
       ))}
       <Legendas />
-      {transicoes.map(({ q, lado }) => (
-        <Sequence key={`l${q}`} from={q - 4} durationInFrames={24} name="luz">
-          <Vazamento lado={lado} />
-        </Sequence>
-      ))}
       <Sequence
         from={FIM_FALA - 12}
         durationInFrames={CARTAO}
@@ -1027,7 +953,6 @@ export const DivisaoMS3D: React.FC = () => {
       >
         <Cartao />
       </Sequence>
-      <Grao />
 
       {/* som */}
       {BLOCOS.map(([a, b]) => {
